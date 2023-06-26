@@ -2,6 +2,7 @@
 	"name": "react-firebase9-logins",
 	"version": "0.1.0",
 	"private": true,
+	"license": "MIT",
 	"dependencies": {
 		"@types/node": "^16.7.13",
 		"@types/react": "^18.0.0",
