@@ -1,0 +1,8 @@
+{
+	"cSpell.words": [
+		"AQQIKR"
+	],
+	"files.exclude": {
+		"**/node_modules": true,
+	}
+}
