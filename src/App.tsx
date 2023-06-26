@@ -4,6 +4,10 @@ import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndP
 import { auth } from "./firebase-config";
 import { User } from "firebase/auth";
 
+import Button from "react-bootstrap/Button";
+import Form from "react-bootstrap/Form";
+import Stack from "react-bootstrap/Stack";
+
 // TODO!!!? try remaking this in nextjs+ts with bootstrap ui on gitlab
 // TODO!!! password reset email functional
 // TODO!!! password reset email nicely formatted
@@ -21,25 +25,16 @@ function App() {
 	const [loginPassword, setLoginPassword] = useState("");
 
 	const [user, setUser] = useState<User | null>(null);
-
-	useEffect(
-		() =>
-			onAuthStateChanged(auth, (currentUser) => {
-				setUser(currentUser);
-				console.log(currentUser);
-			}),
-		[]
-	);
+	useEffect(() => onAuthStateChanged(auth, (currentUser) => setUser(currentUser)), []);
 
 	const register = async () => {
 		setRegisterEmail("");
 		setRegisterPassword("");
 		try {
 			// Registers user and logs them in:
-			const user = await createUserWithEmailAndPassword(auth, registerEmail, registerPassword);
-			console.log("User successfully created:", user);
+			await createUserWithEmailAndPassword(auth, registerEmail, registerPassword);
 		} catch (error) {
-			console.log("Error registering user:", error);
+			console.error("Error registering user:", error);
 			// Errors when email is already registered or email is invalid, among other reasons
 			// Also when password is less than 6 chars
 		}
@@ -49,10 +44,9 @@ function App() {
 		setLoginEmail("");
 		setLoginPassword("");
 		try {
-			const user = await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
-			console.log("User successfully logged in:", user);
+			await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
 		} catch (error) {
-			console.log("Error logging in user:", error);
+			console.error("Error logging in user:", error);
 		}
 	};
 
@@ -61,53 +55,65 @@ function App() {
 	};
 
 	return (
-		<div className="app">
-			<div className="flex-col">
-				<h3>Register User</h3>
-				<input
-					type="text"
-					placeholder="email..."
-					value={registerEmail}
-					onChange={(e) => setRegisterEmail(e.target.value)}
-				/>
-				<input
-					type="text"
-					placeholder="password..."
-					value={registerPassword}
-					onChange={(e) => setRegisterPassword(e.target.value)}
-				/>
-				<button type="button" onClick={register}>
-					Create User
-				</button>
-			</div>
+		<Stack gap={4}>
+			<Form
+				onSubmit={(event) => {
+					register();
+					// Having things in onSubmit rather than onClick is good to allow Enter to work.
+					// But need to prevent the default form action.
+					event.preventDefault();
+				}}
+			>
+				<Stack gap={2}>
+					<h3>Register</h3>
+					<Form.Control
+						type="email"
+						value={registerEmail}
+						placeholder="Email"
+						onChange={(e) => setRegisterEmail(e.target.value)}
+					/>
+					<Form.Control
+						type="password"
+						value={registerPassword}
+						placeholder="Password"
+						onChange={(e) => setRegisterPassword(e.target.value)}
+					/>
+					<Button type="submit">Create Account</Button>
+				</Stack>
+			</Form>
 
-			<div className="flex-col">
-				<h3>Login</h3>
-				<input
-					type="text"
-					placeholder="email..."
-					value={loginEmail}
-					onChange={(e) => setLoginEmail(e.target.value)}
-				/>
-				<input
-					type="text"
-					placeholder="password..."
-					value={loginPassword}
-					onChange={(e) => setLoginPassword(e.target.value)}
-				/>
-				<button type="button" onClick={login}>
-					Login
-				</button>
-			</div>
+			<Form
+				onSubmit={(event) => {
+					login();
+					event.preventDefault();
+				}}
+			>
+				<Stack gap={2}>
+					<h3>Login</h3>
+					<Form.Control
+						type="email"
+						value={loginEmail}
+						placeholder="Email"
+						onChange={(e) => setLoginEmail(e.target.value)}
+					/>
+					<Form.Control
+						type="password"
+						value={loginPassword}
+						placeholder="Password"
+						onChange={(e) => setLoginPassword(e.target.value)}
+					/>
+					<Button type="submit">Sign In</Button>
+				</Stack>
+			</Form>
 
-			<div className="flex-col">
-				<h3>User Logged In:</h3>
+			<Stack gap={2}>
+				<h3>Current User</h3>
 				<p>{user?.email ?? "None"}</p>
-				<button type="button" onClick={logout}>
+				<Button variant="secondary" onClick={logout}>
 					Sign Out
-				</button>
-			</div>
-		</div>
+				</Button>
+			</Stack>
+		</Stack>
 	);
 }
 
