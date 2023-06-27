@@ -18,5 +18,17 @@ nav {
 
 .box {
 	max-width: 600px;
+}
+
+.wide-box {
+	max-width: 800px;
+}
+
+.box,
+.wide-box {
 	background-color: #445;
+}
+
+a {
+	text-decoration: none;
 }
