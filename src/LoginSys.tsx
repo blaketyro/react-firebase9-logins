@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import "./App.css";
 import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "./firebase-config";
 import { User } from "firebase/auth";
@@ -18,7 +17,7 @@ import Stack from "react-bootstrap/Stack";
 // TODO!!! 3rd party logins stuff too
 // TODO!!! ability to require email confirmation
 
-function App() {
+function LoginSys() {
 	const [registerEmail, setRegisterEmail] = useState("");
 	const [registerPassword, setRegisterPassword] = useState("");
 	const [loginEmail, setLoginEmail] = useState("");
@@ -117,4 +116,4 @@ function App() {
 	);
 }
 
-export default App;
+export default LoginSys;
