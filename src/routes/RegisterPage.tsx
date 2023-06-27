@@ -3,16 +3,14 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
 import Box from "../components/Box";
-import { signIn } from "../logins";
+import { signUp } from "../logins";
 
-// TODO!!! wrong password prompt
-// TODO!!! unknown email prompt
-// TODO!!!? x on textboxes?
-// TODO!!!? reveal eye button on password box?
+// TODO!!! email already exists error
+// TODO!!! password too short error
 // TODO!!! redirect home on successful login
 // TODO!!! handle if already logged in
 
-function LoginPage() {
+function RegisterPage() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 
@@ -20,14 +18,14 @@ function LoginPage() {
 		<Box>
 			<Form
 				onSubmit={(event) => {
-					signIn(email, password);
+					signUp(email, password);
 					setEmail("");
 					setPassword("");
 					event.preventDefault();
 				}}
 			>
 				<Stack gap={2}>
-					<h3>Login</h3>
+					<h3>Register</h3>
 					<Form.Control
 						name="email"
 						type="email"
@@ -37,18 +35,18 @@ function LoginPage() {
 						onChange={(e) => setEmail(e.target.value)}
 					/>
 					<Form.Control
-						name="Password"
+						name="password"
 						type="password"
-						autoComplete="current-password"
+						autoComplete="new-password"
 						placeholder="Password"
 						value={password}
 						onChange={(e) => setPassword(e.target.value)}
 					/>
-					<Button type="submit">Sign In</Button>
+					<Button type="submit">Create Account</Button>
 				</Stack>
 			</Form>
 		</Box>
 	);
 }
 
-export default LoginPage;
+export default RegisterPage;

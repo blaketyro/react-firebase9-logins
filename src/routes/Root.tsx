@@ -1,18 +1,19 @@
-import { Outlet, Link } from "react-router-dom";
+import Button from "react-bootstrap/Button";
+import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
-import Container from "react-bootstrap/Navbar";
+import Stack from "react-bootstrap/Stack";
+import { Link, Outlet } from "react-router-dom";
+import { signOut, useUser } from "../logins";
 
 function Root() {
+	const user = useUser();
 	return (
 		// Renders directly into #root div.
 		<>
-			<Navbar className="justify-content-between p-2 flex-wrap">
+			<Navbar className="justify-content-between px-3 flex-wrap border-bottom">
 				<Nav className="flex-wrap">
 					<Navbar.Brand href="/">React Firebase 9 Logins</Navbar.Brand>
-					<Navbar.Text className="text-warning">Current User: none</Navbar.Text>
-				</Nav>
-				<Nav className="flex-wrap">
 					<Link to="/" className="nav-link">
 						Home
 					</Link>
@@ -24,9 +25,18 @@ function Root() {
 					</Link>
 					<Nav.Link href="https://github.com/blaketyro/react-firebase9-logins">GitHub</Nav.Link>
 				</Nav>
+				{user ? (
+					<Stack gap={2} direction="horizontal">
+						<Navbar.Text className="text-info">Signed in as {user.email}</Navbar.Text>
+						<Button variant="secondary" size="sm" onClick={signOut}>
+							Sign Out
+						</Button>
+					</Stack>
+				) : (
+					<Navbar.Text className="text-secondary">Not signed in</Navbar.Text>
+				)}
 			</Navbar>
-			{/* TODO!!! How does the container have nav classes?? */}
-			<Container className="p-4" as="main">
+			<Container className="p-4 d-flex flex-row justify-content-center align-items-center" as="main">
 				<Outlet />
 			</Container>
 		</>

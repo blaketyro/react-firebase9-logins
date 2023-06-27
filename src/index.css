@@ -12,10 +12,11 @@ body {
 		"Droid Sans", "Helvetica Neue", sans-serif;
 }
 
-/* a {
-	text-decoration: none;
-} */
+nav {
+	background-color: #223;
+}
 
-.navbar {
-	background-color: #282838;
+.box {
+	max-width: 600px;
+	background-color: #445;
 }

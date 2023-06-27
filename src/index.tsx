@@ -1,12 +1,14 @@
+import "bootstrap/dist/css/bootstrap.min.css";
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "./index.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import Root from "./routes/Root";
+import "./index.css";
+import { UserProvider } from "./logins";
 import ErrorPage from "./routes/ErrorPage";
 import HomePage from "./routes/HomePage";
 import LoginPage from "./routes/LoginPage";
+import RegisterPage from "./routes/RegisterPage";
+import Root from "./routes/Root";
 
 const router = createBrowserRouter([
 	{
@@ -22,6 +24,10 @@ const router = createBrowserRouter([
 				path: "login",
 				element: <LoginPage />,
 			},
+			{
+				path: "register",
+				element: <RegisterPage />,
+			},
 		],
 	},
 ]);
@@ -29,6 +35,8 @@ const router = createBrowserRouter([
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 root.render(
 	<React.StrictMode>
-		<RouterProvider router={router} />
+		<UserProvider>
+			<RouterProvider router={router} />
+		</UserProvider>
 	</React.StrictMode>
 );
