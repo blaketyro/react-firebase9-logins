@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import Box from "../components/Box";
 import { useUser } from "../logins";
 
-function UserTidbit({ title, value, horizontal }: { title: string; value: ReactNode; horizontal?: boolean }) {
+const UserTidbit = ({ title, value, horizontal }: { title: string; value: ReactNode; horizontal?: boolean }) => {
 	return (
 		<Col>
 			<Stack direction={horizontal ? "horizontal" : undefined} gap={horizontal ? 4 : 0}>
@@ -15,9 +15,9 @@ function UserTidbit({ title, value, horizontal }: { title: string; value: ReactN
 			</Stack>
 		</Col>
 	);
-}
+};
 
-function HomePage() {
+const HomePage = () => {
 	const user = useUser();
 	const photoURL = user?.photoURL; // ?? "https://upload.wikimedia.org/wikipedia/commons/b/bc/Unknown_person.jpg";
 
@@ -95,6 +95,6 @@ function HomePage() {
 			</Stack>
 		</Box>
 	);
-}
+};
 
 export default HomePage;

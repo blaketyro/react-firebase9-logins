@@ -8,7 +8,7 @@ import { signOut, useUser } from "../logins";
 
 // TODO!!! Sign Out alert
 
-function Root() {
+const Root = () => {
 	const user = useUser();
 	return (
 		// Renders directly into #root div.
@@ -43,5 +43,5 @@ function Root() {
 			</Container>
 		</>
 	);
-}
+};
 export default Root;

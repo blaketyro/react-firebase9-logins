@@ -36,11 +36,16 @@
 			"tsconfigRootDir": "."
 		},
 		"plugins": [
-			"@typescript-eslint"
+			"@typescript-eslint",
+			"prefer-arrow"
 		],
 		"ignorePatterns": [
 			"build"
-		]
+		],
+		"rules": {
+			"prefer-arrow-callback": "error",
+			"prefer-arrow/prefer-arrow-functions": "warn"
+		}
 	},
 	"browserslist": {
 		"production": [
@@ -62,6 +67,7 @@
 		"@typescript-eslint/eslint-plugin": "^5.60.1",
 		"@typescript-eslint/parser": "^5.60.1",
 		"eslint": "^8.43.0",
+		"eslint-plugin-prefer-arrow": "^1.2.3",
 		"typescript": "^5.1.5"
 	}
 }

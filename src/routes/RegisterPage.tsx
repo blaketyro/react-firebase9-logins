@@ -12,7 +12,7 @@ import { signUp } from "../logins";
 // TODO!!!? x on textboxes?
 // TODO!!!? reveal eye button on password box?
 
-function RegisterPage() {
+const RegisterPage = () => {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 
@@ -49,6 +49,6 @@ function RegisterPage() {
 			</Form>
 		</Box>
 	);
-}
+};
 
 export default RegisterPage;

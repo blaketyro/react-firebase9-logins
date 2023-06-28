@@ -10,7 +10,7 @@ import { signIn } from "../logins";
 // TODO!!! redirect home on successful login
 // TODO!!! handle if already logged in
 
-function LoginPage() {
+const LoginPage = () => {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 
@@ -47,6 +47,6 @@ function LoginPage() {
 			</Form>
 		</Box>
 	);
-}
+};
 
 export default LoginPage;
