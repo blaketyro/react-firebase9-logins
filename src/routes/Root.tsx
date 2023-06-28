@@ -31,7 +31,7 @@ const Root = () => {
 					<Nav.Link href="https://github.com/blaketyro/react-firebase9-logins">GitHub</Nav.Link>
 					<Nav.Link
 						onClick={() => {
-							showToast("Test Toast" + (Math.random() < 0.5 ? "FOOOOOOOO" : ""));
+							showToast("Test Toast " + Math.random().toString());
 						}}
 					>
 						Toast
@@ -48,7 +48,7 @@ const Root = () => {
 					<Navbar.Text className="text-secondary">Not signed in</Navbar.Text>
 				)}
 			</Navbar>
-			<Container className="p-4 d-flex flex-row justify-content-center align-items-center" as="main">
+			<Container className="p-5 d-flex flex-row justify-content-center align-items-center" as="main">
 				<Outlet />
 			</Container>
 		</>

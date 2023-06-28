@@ -2,7 +2,7 @@ import { Container } from "react-bootstrap";
 import Alert from "react-bootstrap/Alert";
 import { Link } from "react-router-dom";
 
-function ErrorPage() {
+const ErrorPage = () => {
 	return (
 		<Container className="p-4">
 			<Alert variant="danger">
@@ -12,6 +12,6 @@ function ErrorPage() {
 			</Alert>
 		</Container>
 	);
-}
+};
 
 export default ErrorPage;

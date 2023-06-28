@@ -35,11 +35,11 @@ const router = createBrowserRouter([
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 root.render(
-	<StrictMode>
-		<ToastProvider>
-			<UserProvider>
-				<RouterProvider router={router} />
-			</UserProvider>
-		</ToastProvider>
-	</StrictMode>
+	// <StrictMode>
+	<ToastProvider>
+		<UserProvider>
+			<RouterProvider router={router} />
+		</UserProvider>
+	</ToastProvider>
+	// </StrictMode>
 );
