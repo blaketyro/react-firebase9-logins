@@ -6,6 +6,8 @@ import Stack from "react-bootstrap/Stack";
 import { Link, Outlet } from "react-router-dom";
 import { signOut, useUser } from "../logins";
 
+// TODO!!! Sign Out alert
+
 function Root() {
 	const user = useUser();
 	return (
@@ -28,7 +30,7 @@ function Root() {
 				{user ? (
 					<Stack gap={2} direction="horizontal">
 						<Navbar.Text className="text-info">Signed in as {user.email}</Navbar.Text>
-						<Button variant="secondary" size="sm" onClick={signOut}>
+						<Button variant="secondary" size="sm" onClick={() => void signOut()}>
 							Sign Out
 						</Button>
 					</Stack>

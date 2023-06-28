@@ -7,8 +7,6 @@ import { signIn } from "../logins";
 
 // TODO!!! wrong password prompt
 // TODO!!! unknown email prompt
-// TODO!!!? x on textboxes?
-// TODO!!!? reveal eye button on password box?
 // TODO!!! redirect home on successful login
 // TODO!!! handle if already logged in
 
@@ -20,7 +18,7 @@ function LoginPage() {
 		<Box>
 			<Form
 				onSubmit={(event) => {
-					signIn(email, password);
+					void signIn(email, password);
 					setEmail("");
 					setPassword("");
 					event.preventDefault();

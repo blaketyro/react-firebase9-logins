@@ -7,8 +7,10 @@ import { signUp } from "../logins";
 
 // TODO!!! email already exists error
 // TODO!!! password too short error
-// TODO!!! redirect home on successful login
+// TODO!!! redirect home on successful login and show alert
 // TODO!!! handle if already logged in
+// TODO!!!? x on textboxes?
+// TODO!!!? reveal eye button on password box?
 
 function RegisterPage() {
 	const [email, setEmail] = useState("");
@@ -18,7 +20,7 @@ function RegisterPage() {
 		<Box>
 			<Form
 				onSubmit={(event) => {
-					signUp(email, password);
+					void signUp(email, password);
 					setEmail("");
 					setPassword("");
 					event.preventDefault();

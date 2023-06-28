@@ -35,13 +35,13 @@ function HomePage() {
 					</a>
 					. It is built with <a href="https://www.typescriptlang.org/">Typescript</a>,{" "}
 					<a href="https://react.dev/">React</a>, <a href="https://reactrouter.com/en/main">React Router</a>,
-					and <a href="https://react-bootstrap.netlify.app/">React Bootstrap</a>, and, of course, Google's
+					and <a href="https://react-bootstrap.netlify.app/">React Bootstrap</a>, and, of course, Google's{" "}
 					<a href="https://firebase.google.com/">Firebase</a>.
 				</p>
 				<p>
 					I made it for practice to understand Firebase and user auth systems better. The code is available{" "}
 					<a href="https://github.com/blaketyro/react-firebase9-logins">on GitHub</a> under an MIT license.
-					Feel free to use the code or the site to learn more yourself.
+					Feel free to use the code or the site yourself.
 				</p>
 				<p>
 					Each feature of the login system is on it's own page for simplicity. Create an account on the{" "}
