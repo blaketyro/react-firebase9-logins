@@ -65,7 +65,9 @@ const useCloseToast = () => {
 	return useCallback(
 		(id: number) => {
 			setToastData((oldToastData) => {
-				// TODO!!! use a Map! so no findIndex
+				// A Map<number, ToastData> could be used instead of ToastData[] to avoid the O(n) findIndex call,
+				// but there are usually so few toasts and so much O(n) stuff in the render anyway
+				// it would almost certainly not be be worth the overhead (and the slightly messier code).
 				const index = oldToastData.findIndex((toastData) => id === toastData.id);
 				if (index === -1) return oldToastData;
 				const newToastData = [...oldToastData];
