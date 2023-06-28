@@ -28,9 +28,8 @@ a {
 
 #toast-portal {
 	max-width: 100%;
-	position: absolute;
-	padding: 0.5rem;
-	padding-top: 4rem;
+	position: fixed;
+	padding: 3rem 0.5rem;
 	top: 0;
 	left: 50%;
 	transform: translateX(-50%);
@@ -39,15 +38,15 @@ a {
 	align-items: center;
 	pointer-events: none;
 	gap: 0.5rem;
-	max-height: 100vh;
+	max-height: 100%;
 	overflow: hidden;
 }
 
 .box {
-	max-width: 600px;
+	max-width: min(600px, 100%);
 }
 .wide-box {
-	max-width: 800px;
+	max-width: min(800px, 100%);
 }
 .box,
 .wide-box {

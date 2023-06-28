@@ -8,10 +8,10 @@ import { useUser } from "../logins";
 
 const UserTidbit = ({ title, value, horizontal }: { title: string; value: ReactNode; horizontal?: boolean }) => {
 	return (
-		<Col>
+		<Col lg className="py-2">
 			<Stack direction={horizontal ? "horizontal" : undefined} gap={horizontal ? 4 : 0}>
 				<div className="text-uppercase fw-bold text-muted">{title}</div>
-				{value ? <div className="text-info">{value}</div> : <div className="text-muted">unknown</div>}
+				{value ? <div className="text-info">{value}</div> : <div className="text-muted">none</div>}
 			</Stack>
 		</Col>
 	);
@@ -49,7 +49,7 @@ const HomePage = () => {
 					<Link to="/login">login page</Link>, or follow the navbar links for more actions.
 				</p>
 
-				<Stack gap={3} className="border rounded p-3">
+				<Stack className="border rounded p-3">
 					<h5>Current User Info</h5>
 					{user ? (
 						<>
@@ -82,7 +82,7 @@ const HomePage = () => {
 												<img src={photoURL} width={128} height={128} alt="User profile" />
 											</a>
 										) : (
-											<div className="text-muted">unknown</div>
+											<div className="text-muted">none</div>
 										)
 									}
 								/>
