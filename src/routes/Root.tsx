@@ -5,11 +5,14 @@ import Navbar from "react-bootstrap/Navbar";
 import Stack from "react-bootstrap/Stack";
 import { Link, Outlet } from "react-router-dom";
 import { signOut, useUser } from "../logins";
+import { useShowToast } from "../toasts";
 
 // TODO!!! Sign Out alert
 
 const Root = () => {
 	const user = useUser();
+	const showToast = useShowToast();
+
 	return (
 		// Renders directly into #root div.
 		<>
@@ -26,6 +29,13 @@ const Root = () => {
 						Register
 					</Link>
 					<Nav.Link href="https://github.com/blaketyro/react-firebase9-logins">GitHub</Nav.Link>
+					<Nav.Link
+						onClick={() => {
+							showToast("Test Toast" + (Math.random() < 0.5 ? "FOOOOOOOO" : ""));
+						}}
+					>
+						Toast
+					</Nav.Link>
 				</Nav>
 				{user ? (
 					<Stack gap={2} direction="horizontal">

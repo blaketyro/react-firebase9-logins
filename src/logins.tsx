@@ -7,7 +7,7 @@ import {
 	onAuthStateChanged,
 	signInWithEmailAndPassword,
 } from "firebase/auth";
-import React, { ReactNode, useContext, useEffect, useState } from "react";
+import { ReactNode, createContext, useContext, useEffect, useState } from "react";
 import { auth } from "./firebase-config";
 
 const DEBUG_LOGINS = true;
@@ -19,7 +19,7 @@ const debugMsg = (...messages: unknown[]) => {
 
 export type User = FirebaseUser; // Re-export even the User type so nothing else needs to import Firebase.
 
-const UserContext = React.createContext<User | null>(null);
+const UserContext = createContext<User | null>(null);
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
 	const [user, setUser] = useState<User | null>(null);

@@ -12,12 +12,27 @@ body {
 		"Droid Sans", "Helvetica Neue", sans-serif;
 }
 
+nav {
+	background-color: #223;
+}
+
+a {
+	text-decoration: none;
+}
+
 #root {
 	min-height: 100vh;
 }
 
-nav {
-	background-color: #223;
+#toast-portal {
+	position: absolute;
+	top: 0;
+	left: 50%;
+	transform: translateX(-50%);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	background-color: #88000080;
 }
 
 .box {
@@ -31,8 +46,4 @@ nav {
 .box,
 .wide-box {
 	background-color: #445;
-}
-
-a {
-	text-decoration: none;
 }

@@ -1,5 +1,5 @@
 import "bootstrap/dist/css/bootstrap.min.css";
-import React from "react";
+import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./index.css";
@@ -9,6 +9,7 @@ import HomePage from "./routes/HomePage";
 import LoginPage from "./routes/LoginPage";
 import RegisterPage from "./routes/RegisterPage";
 import Root from "./routes/Root";
+import { ToastProvider } from "./toasts";
 
 const router = createBrowserRouter([
 	{
@@ -34,9 +35,11 @@ const router = createBrowserRouter([
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 root.render(
-	<React.StrictMode>
-		<UserProvider>
-			<RouterProvider router={router} />
-		</UserProvider>
-	</React.StrictMode>
+	<StrictMode>
+		<ToastProvider>
+			<UserProvider>
+				<RouterProvider router={router} />
+			</UserProvider>
+		</ToastProvider>
+	</StrictMode>
 );
