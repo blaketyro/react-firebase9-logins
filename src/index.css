@@ -7,7 +7,6 @@ body {
 	padding: 0;
 	background-color: #334;
 	color: #eee;
-	min-height: 100vh;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans",
 		"Droid Sans", "Helvetica Neue", sans-serif;
 }
@@ -22,6 +21,9 @@ a {
 
 #root {
 	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
 }
 
 #toast-portal {
@@ -37,16 +39,16 @@ a {
 	align-items: center;
 	pointer-events: none;
 	gap: 0.5rem;
+	max-height: 100vh;
+	overflow: hidden;
 }
 
 .box {
 	max-width: 600px;
 }
-
 .wide-box {
 	max-width: 800px;
 }
-
 .box,
 .wide-box {
 	background-color: #445;

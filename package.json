@@ -44,7 +44,8 @@
 		],
 		"rules": {
 			"prefer-arrow-callback": "error",
-			"prefer-arrow/prefer-arrow-functions": "warn"
+			"prefer-arrow/prefer-arrow-functions": "warn",
+			"@typescript-eslint/no-redeclare": "off"
 		}
 	},
 	"browserslist": {
