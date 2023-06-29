@@ -15,7 +15,7 @@ const debugMsg = (...messages: unknown[]) => {
 	if (DEBUG_LOGINS) console.info(...messages);
 };
 
-//#region User Type and Context
+//#region User Type and Context:
 
 export type User = FirebaseUser; // Re-export even the User type so nothing else needs to import Firebase.
 
@@ -38,7 +38,7 @@ export const useUser = () => useContext(UserContext);
 
 //#endregion
 
-//#region Sign Up, Sign In, Sign Out
+//#region Sign Up, Sign In, Sign Out:
 
 export const UnspecifiedError = "unspecified-error";
 export type UnspecifiedError = typeof UnspecifiedError;

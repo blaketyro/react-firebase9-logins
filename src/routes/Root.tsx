@@ -5,7 +5,7 @@ import Navbar from "react-bootstrap/Navbar";
 import Stack from "react-bootstrap/Stack";
 import { Link, Outlet } from "react-router-dom";
 import { signOut, useUser } from "../logins";
-import { BootstrapVariant, useMakeToast } from "../toasts";
+import { BootstrapVariant, useMakeBootstrapToast } from "../toasts";
 
 // TODO!!! Sign Out alert
 
@@ -42,19 +42,13 @@ const Header = () => {
 };
 
 const ToastTestButton = ({ variant, timeoutMs }: { variant: BootstrapVariant; timeoutMs: number }) => {
-	const makeToast = useMakeToast();
+	const makeToast = useMakeBootstrapToast();
 	return (
 		<Button
 			size="sm"
 			style={{ minWidth: "9rem" }}
 			variant={variant}
-			onClick={() =>
-				makeToast(`Toast Test 🔥🍞 ${Math.floor(Math.random() * 10000)}`, {
-					title: "Testing",
-					variant,
-					timeoutMs,
-				})
-			}
+			onClick={() => makeToast(({ id }) => `Toast Test 🔥🍞 (ID ${id})`, "Testing", variant, timeoutMs)}
 		>
 			Toast Test {timeoutMs}ms
 		</Button>

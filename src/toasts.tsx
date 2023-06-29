@@ -12,94 +12,115 @@ import {
 import Toast from "react-bootstrap/Toast";
 import { createPortal } from "react-dom";
 
-export type BootstrapVariant = "primary" | "secondary" | "success" | "danger" | "warning" | "info" | "light" | "dark";
-type ToastData = {
-	id: number;
-	message: string;
-	title?: string;
-	variant?: BootstrapVariant;
-};
-const defaultTimeoutMs = 3000;
-
-const ToastContext = createContext<{ toastData: ToastData[]; setToastData: Dispatch<SetStateAction<ToastData[]>> }>({
-	toastData: [],
-	setToastData: () => null,
-});
-
-const ToastWithData = ({
-	toastData: { id, message, title, variant },
-	closeToast,
-}: {
-	toastData: ToastData;
-	closeToast: (id: number) => void;
-}) => (
-	// Can't use Bootstrap's built-in delay and autohide props because the re-rendering throws it off.
-	<Toast onClose={() => closeToast(id)} bg={variant}>
-		{title ? (
-			<Toast.Header className="fw-bold d-flex justify-content-between">{title}</Toast.Header>
-		) : (
-			<Toast.Header className="d-flex justify-content-end"></Toast.Header>
-		)}
-		{message && <Toast.Body>{message}</Toast.Body>}
-	</Toast>
-);
-
-export const useMakeToast = () => {
-	const { setToastData } = useContext(ToastContext);
-	const toastId = useRef(0); // Since the indexes are always changing, use an incrementing id to identify toasts.
-
-	const closeToast = useCloseToast();
-	return (message: string, options?: Partial<{ title: string; timeoutMs: number; variant: BootstrapVariant }>) => {
-		setToastData((oldToastData) => {
-			const id = toastId.current++;
-			setTimeout(() => {
-				closeToast(id);
-			}, options?.timeoutMs ?? defaultTimeoutMs);
-			return [{ ...options, message, id }, ...oldToastData];
-		});
-	};
-};
+// TODO!!!? msTime optional? don't want to constantly render if unneeded
+type ToastComponent = ({ id, close }: { id: number; close: () => void }) => ReactNode;
 
 const useCloseToast = () => {
-	const { setToastData } = useContext(ToastContext);
+	const { setToasts } = useContext(ToastContext);
 	return useCallback(
 		(id: number) => {
-			setToastData((oldToastData) => {
-				// A Map<number, ToastData> could be used instead of ToastData[] to avoid the O(n) findIndex call,
-				// but there are usually so few toasts and so much O(n) stuff in the render anyway
-				// it would almost certainly not be be worth the overhead (and the slightly messier code).
-				const index = oldToastData.findIndex((toastData) => id === toastData.id);
-				if (index === -1) return oldToastData;
-				const newToastData = [...oldToastData];
-				newToastData.splice(index, 1);
-				return newToastData;
+			setToasts((oldToasts) => {
+				if (!oldToasts.has(id)) return oldToasts;
+				const newToasts = new Map(oldToasts);
+				newToasts.delete(id);
+				return newToasts;
 			});
 		},
-		[setToastData]
+		[setToasts]
 	);
 };
 
-const ToastPortal = ({ toastData }: { toastData: ToastData[] }) => {
+const ToastContext = createContext<{
+	toasts: ReadonlyMap<number, ToastComponent>;
+	setToasts: Dispatch<SetStateAction<ReadonlyMap<number, ToastComponent>>>;
+}>({
+	toasts: new Map(),
+	setToasts: () => null,
+});
+
+const ToastPortal = ({ toasts }: { toasts: ReadonlyMap<number, ToastComponent> }) => {
 	const toastPortal = document.getElementById("toast-portal");
 	const closeToast = useCloseToast();
 	return (
 		toastPortal &&
 		createPortal(
-			toastData.map((toastData, index) => (
-				<ToastWithData key={index} toastData={toastData} closeToast={closeToast} />
-			)),
+			Array.from(toasts.entries())
+				.reverse() // Reverse so later toasts are at the top.
+				.map(([id, ToastComponent], index) => (
+					<ToastComponent key={index} id={id} close={() => closeToast(id)} />
+				)),
 			toastPortal
 		)
 	);
 };
 
 export const ToastProvider = ({ children }: { children: ReactNode }) => {
-	const toastState = useState<ToastData[]>([]);
-	const toastValue = useMemo(() => ({ toastData: toastState[0], setToastData: toastState[1] }), [toastState]);
+	const toastState = useState<ReadonlyMap<number, ToastComponent>>(new Map());
+	const toastValue = useMemo(() => ({ toasts: toastState[0], setToasts: toastState[1] }), [toastState]);
 	return (
 		<ToastContext.Provider value={toastValue}>
 			{children}
-			<ToastPortal toastData={toastValue.toastData} />
+			<ToastPortal toasts={toastValue.toasts} />
 		</ToastContext.Provider>
 	);
 };
+
+export const useMakeToastMaker = () => {
+	const toastIdCounter = useRef(0);
+	const { setToasts } = useContext(ToastContext);
+	const closeToast = useCloseToast();
+
+	// Returns a generic toast maker function
+	return useCallback((ToastComponent: ToastComponent, timeoutMs: number) => {
+		// TODO!!! the ids and timeouts don't always stay in sync?
+		setToasts((oldToasts) => {
+			const id = toastIdCounter.current++;
+			setTimeout(() => {
+				closeToast(id);
+			}, timeoutMs);
+			const newToasts = new Map(oldToasts);
+			newToasts.set(id, ToastComponent);
+			return newToasts;
+		});
+	}, []);
+};
+
+//#region Bootstrap Specific Toast Code:
+
+type FunctionOf<TReturn, TArg> = (arg: TArg) => TReturn;
+type PossibleFunctionOf<TReturn, TArg> = TReturn | FunctionOf<TReturn, TArg>;
+const isFunction = <T, TArg>(thing: PossibleFunctionOf<T, TArg>): thing is FunctionOf<T, TArg> => {
+	return typeof thing === "function";
+};
+const callPossibleFunction = <TReturn, TArg>(possibleFunction: PossibleFunctionOf<TReturn, TArg>, arg: TArg) => {
+	return isFunction(possibleFunction) ? possibleFunction(arg) : possibleFunction;
+};
+
+export type BootstrapVariant = "primary" | "secondary" | "success" | "danger" | "warning" | "info" | "light" | "dark";
+export const useMakeBootstrapToast = () => {
+	const makeToastMaker = useMakeToastMaker();
+	return (
+		// TODO!!! msLeft as function input too??
+		message?: PossibleFunctionOf<string, { id: number }>,
+		title?: PossibleFunctionOf<string, { id: number }>,
+		variant?: BootstrapVariant,
+		timeoutMs = 3000
+	) => {
+		return makeToastMaker(({ id, close }) => {
+			const concreteMessage = callPossibleFunction(message, { id });
+			const concreteTitle = callPossibleFunction(title, { id });
+			return (
+				<Toast onClose={close} bg={variant}>
+					{title ? (
+						<Toast.Header className="fw-bold d-flex justify-content-between">{concreteTitle}</Toast.Header>
+					) : (
+						<Toast.Header className="d-flex justify-content-end"></Toast.Header>
+					)}
+					{concreteMessage && <Toast.Body>{concreteMessage}</Toast.Body>}
+				</Toast>
+			);
+		}, timeoutMs);
+	};
+};
+
+//#endregion
