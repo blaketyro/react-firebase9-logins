@@ -1,4 +1,4 @@
-// My API for the login systems (dependency inverted so the React stuff doesn't need to know about Firebase).
+// My API for the user account systems (dependency inverted so the React stuff doesn't need to know about Firebase).
 
 import {
 	User as FirebaseUser,
@@ -11,9 +11,9 @@ import { ReactNode, createContext, useContext, useEffect, useState } from "react
 import { auth } from "./firebase-config";
 import { useMakeToast } from "./toasts";
 
-const DEBUG_LOGINS = true;
+const DEBUG = true;
 const debugMsg = (...messages: unknown[]) => {
-	if (DEBUG_LOGINS) console.info(...messages);
+	if (DEBUG) console.info(...messages);
 };
 
 //#region User Type and Context:
@@ -110,10 +110,10 @@ export const signOutWithToasts = (makeToast: ReturnType<typeof useMakeToast>) =>
 	void (async () => {
 		switch (await signOut()) {
 			case undefined:
-				makeToast("Successfully signed out", "Logged Out");
+				makeToast("Successfully signed out", "Signed Out");
 				break;
 			case "unspecified-error":
-				makeToast("Unspecified error signing out", "Logout Error", "danger");
+				makeToast("Unspecified error signing out", "Sign Out Error", "danger");
 		}
 	})();
 };

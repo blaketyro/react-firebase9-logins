@@ -1,8 +1,7 @@
 # [react-firebase9-logins](https://react-firebase9-logins.web.app)
 
-A demo Firebase web app, built with Typescript, React, React Router, and React Bootstrap, that implements user logins
-using the new [Firebase 9+ modular API](https://firebase.google.com/docs/web/modular-upgrade) as well as the [Firebase
-Auth with Identity
+A demo Firebase web app, built with Typescript, React, React Router, and React Bootstrap, that implements user logins and accounts using the new [Firebase 9+ modular API](https://firebase.google.com/docs/web/modular-upgrade) as well as the
+[Firebase Auth with Identity
 Platform](https://firebase.google.com/docs/auth?hl=en&authuser=1&_gl=1*1oolcop*_ga*Mjk1NzA5MjQ0LjE2ODMwODA2MTY.*_ga_CW55HF8NVT*MTY4NzgwNDE4OC4yMi4xLjE2ODc4MDQzMzguMC4wLjA.#identity-platform).
 
 Check it out 👉 **[react-firebase9-logins.web.app](https://react-firebase9-logins.web.app)**

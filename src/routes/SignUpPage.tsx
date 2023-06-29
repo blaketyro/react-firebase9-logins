@@ -2,9 +2,9 @@ import { useState } from "react";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
-import AlreadyLoggedInGuard from "../components/AlreadyLoggedInGuard";
+import { signUp } from "../accounts";
+import AlreadySignedInGuard from "../components/AlreadySignedInGuard";
 import Box from "../components/Box";
-import { signUp } from "../logins";
 
 // TODO!!! email already exists error
 // TODO!!! password too short error
@@ -12,13 +12,13 @@ import { signUp } from "../logins";
 // TODO!!!? x on textboxes?
 // TODO!!!? reveal eye button on password box?
 
-const RegisterPage = () => {
+const SignUpPage = () => {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 
 	return (
 		<Box>
-			<AlreadyLoggedInGuard>
+			<AlreadySignedInGuard>
 				<Form
 					onSubmit={(event) => {
 						void signUp(email, password);
@@ -34,7 +34,7 @@ const RegisterPage = () => {
 								setPassword("example");
 							}}
 						>
-							Register
+							Sign Up
 						</h3>
 						<Form.Control
 							name="email"
@@ -55,9 +55,9 @@ const RegisterPage = () => {
 						<Button type="submit">Create Account</Button>
 					</Stack>
 				</Form>
-			</AlreadyLoggedInGuard>
+			</AlreadySignedInGuard>
 		</Box>
 	);
 };
 
-export default RegisterPage;
+export default SignUpPage;

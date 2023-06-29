@@ -2,13 +2,13 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { UserProvider } from "./accounts";
 import "./index.css";
-import { UserProvider } from "./logins";
 import ErrorPage from "./routes/ErrorPage";
 import HomePage from "./routes/HomePage";
-import LoginPage from "./routes/LoginPage";
-import RegisterPage from "./routes/RegisterPage";
 import Root from "./routes/Root";
+import SignInPage from "./routes/SignInPage";
+import SignUpPage from "./routes/SignUpPage";
 import { ToastProvider } from "./toasts";
 
 const router = createBrowserRouter([
@@ -22,12 +22,12 @@ const router = createBrowserRouter([
 				element: <HomePage />,
 			},
 			{
-				path: "login",
-				element: <LoginPage />,
+				path: "sign-in",
+				element: <SignInPage />,
 			},
 			{
-				path: "register",
-				element: <RegisterPage />,
+				path: "sign-up",
+				element: <SignUpPage />,
 			},
 		],
 	},

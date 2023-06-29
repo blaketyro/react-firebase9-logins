@@ -3,12 +3,12 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
 import { useNavigate } from "react-router-dom";
-import AlreadyLoggedInGuard from "../components/AlreadyLoggedInGuard";
+import { signIn } from "../accounts";
+import AlreadySignedInGuard from "../components/AlreadySignedInGuard";
 import Box from "../components/Box";
-import { signIn } from "../logins";
 import { useMakeToast } from "../toasts";
 
-const LoginPage = () => {
+const SignInPage = () => {
 	const makeToast = useMakeToast();
 	const navigate = useNavigate();
 	const [email, setEmail] = useState("");
@@ -16,17 +16,17 @@ const LoginPage = () => {
 
 	return (
 		<Box>
-			<AlreadyLoggedInGuard>
+			<AlreadySignedInGuard>
 				<Form
 					onSubmit={(event) => {
 						event.preventDefault();
 						void (async () => {
-							const makeErrorToast = (message: string) => makeToast(message, "Login Error", "danger");
+							const makeErrorToast = (message: string) => makeToast(message, "Sign In Error", "danger");
 							setPassword(""); // Always clear password.
 
 							switch (await signIn(email, password)) {
 								case undefined:
-									makeToast("Successfully signed in", "Logged In", "success");
+									makeToast("Successfully signed in", "Signed In", "success");
 									setEmail("");
 									navigate("/");
 									break;
@@ -56,7 +56,7 @@ const LoginPage = () => {
 								setPassword("example");
 							}}
 						>
-							Login
+							Sign In
 						</h3>
 						<Form.Control
 							name="email"
@@ -77,9 +77,9 @@ const LoginPage = () => {
 						<Button type="submit">Sign In</Button>
 					</Stack>
 				</Form>
-			</AlreadyLoggedInGuard>
+			</AlreadySignedInGuard>
 		</Box>
 	);
 };
 
-export default LoginPage;
+export default SignInPage;

@@ -5,6 +5,7 @@ import { getAuth } from "firebase/auth";
 // Your web app's Firebase configuration
 const firebaseConfig = {
 	// This stuff is safe to share as long as security rules are in place.
+	// cspell:disable-next-line
 	apiKey: "AIzaSyB_28RbkPRD7Pcl0Knl6jAQQIKR-JwQASc",
 	authDomain: "react-firebase9-logins.firebaseapp.com",
 	projectId: "react-firebase9-logins",

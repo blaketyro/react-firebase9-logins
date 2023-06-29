@@ -4,8 +4,8 @@ import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import Stack from "react-bootstrap/Stack";
 import { Link, Outlet } from "react-router-dom";
+import { signOutWithToasts, useUser } from "../accounts";
 import ToastTestButton from "../components/ToastTestButton";
-import { signOutWithToasts, useUser } from "../logins";
 import { useMakeToast } from "../toasts";
 
 const Header = () => {
@@ -20,11 +20,11 @@ const Header = () => {
 					<Link to="/" className="nav-link">
 						Home
 					</Link>
-					<Link to="/login" className="nav-link">
-						Login
+					<Link to="/sign-up" className="nav-link">
+						Sign Up
 					</Link>
-					<Link to="/register" className="nav-link">
-						Register
+					<Link to="/sign-in" className="nav-link">
+						Sign In
 					</Link>
 				</Stack>
 			</Nav>

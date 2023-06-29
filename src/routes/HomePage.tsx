@@ -3,8 +3,8 @@ import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Stack from "react-bootstrap/Stack";
 import { Link } from "react-router-dom";
+import { useUser } from "../accounts";
 import Box from "../components/Box";
-import { useUser } from "../logins";
 
 const UserTidbit = ({ title, value, horizontal }: { title: string; value: ReactNode; horizontal?: boolean }) => {
 	return (
@@ -44,9 +44,9 @@ const HomePage = () => {
 					Feel free to use the code or the site yourself.
 				</p>
 				<p>
-					Each feature of the login system is on it's own page for simplicity. Create an account on the{" "}
-					<Link to="/register">registration page</Link>, sign into an existing account on the{" "}
-					<Link to="/login">login page</Link>, or follow the navbar links for more actions.
+					Each feature of the user account system is on it's own page for simplicity. Create an account on the{" "}
+					<Link to="/sign-up">sign up page</Link>, sign into an existing account on the{" "}
+					<Link to="/sign-in">sign in page</Link>, or follow the navbar links for more actions.
 				</p>
 
 				<Stack className="border rounded p-3">
