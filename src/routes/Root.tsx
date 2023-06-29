@@ -4,8 +4,8 @@ import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import Stack from "react-bootstrap/Stack";
 import { Link, Outlet } from "react-router-dom";
+import ToastTestButton from "../components/ToastTestButton";
 import { signOut, useUser } from "../logins";
-import { BootstrapVariant, useMakeBootstrapToast } from "../toasts";
 
 // TODO!!! Sign Out alert
 
@@ -38,20 +38,6 @@ const Header = () => {
 				<Navbar.Text className="text-secondary">Not signed in</Navbar.Text>
 			)}
 		</Navbar>
-	);
-};
-
-const ToastTestButton = ({ variant, timeoutMs }: { variant: BootstrapVariant; timeoutMs: number }) => {
-	const makeToast = useMakeBootstrapToast();
-	return (
-		<Button
-			size="sm"
-			style={{ minWidth: "9rem" }}
-			variant={variant}
-			onClick={() => makeToast(({ id }) => `Toast Test 🔥🍞 (ID ${id})`, "Testing", variant, timeoutMs)}
-		>
-			Toast Test {timeoutMs}ms
-		</Button>
 	);
 };
 

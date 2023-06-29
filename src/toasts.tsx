@@ -2,8 +2,9 @@ import { Dispatch, ReactNode, SetStateAction, createContext, useCallback, useCon
 import Toast from "react-bootstrap/Toast";
 import { createPortal } from "react-dom";
 
-// TODO!!!? msTime optional? don't want to constantly render if unneeded
-type ToastComponent = ({ id, close }: { id: number; close: () => void }) => ReactNode;
+type ToastArgs = { id: number; msLeft: number };
+type ToastComponent = ({ id, msLeft, close }: ToastArgs & { close: () => void }) => ReactNode;
+type ToastData = { msLeft: number; ToastComponent: ToastComponent };
 
 const useCloseToast = () => {
 	const { setToasts } = useContext(ToastContext);
@@ -21,14 +22,14 @@ const useCloseToast = () => {
 };
 
 const ToastContext = createContext<{
-	toasts: ReadonlyMap<number, ToastComponent>;
-	setToasts: Dispatch<SetStateAction<ReadonlyMap<number, ToastComponent>>>;
+	toasts: ReadonlyMap<number, ToastData>;
+	setToasts: Dispatch<SetStateAction<ReadonlyMap<number, ToastData>>>;
 }>({
 	toasts: new Map(),
 	setToasts: () => null,
 });
 
-const ToastPortal = ({ toasts }: { toasts: ReadonlyMap<number, ToastComponent> }) => {
+const ToastPortal = ({ toasts }: { toasts: ReadonlyMap<number, ToastData> }) => {
 	const toastPortal = document.getElementById("toast-portal");
 	const closeToast = useCloseToast();
 	return (
@@ -36,8 +37,8 @@ const ToastPortal = ({ toasts }: { toasts: ReadonlyMap<number, ToastComponent> }
 		createPortal(
 			Array.from(toasts.entries())
 				.reverse() // Reverse so later toasts are at the top.
-				.map(([id, ToastComponent], index) => (
-					<ToastComponent key={index} id={id} close={() => closeToast(id)} />
+				.map(([id, { msLeft, ToastComponent }], key) => (
+					<ToastComponent key={key} id={id} msLeft={msLeft} close={() => closeToast(id)} />
 				)),
 			toastPortal
 		)
@@ -45,7 +46,7 @@ const ToastPortal = ({ toasts }: { toasts: ReadonlyMap<number, ToastComponent> }
 };
 
 export const ToastProvider = ({ children }: { children: ReactNode }) => {
-	const toastState = useState<ReadonlyMap<number, ToastComponent>>(new Map());
+	const toastState = useState<ReadonlyMap<number, ToastData>>(new Map());
 	const toastValue = useMemo(() => ({ toasts: toastState[0], setToasts: toastState[1] }), [toastState]);
 	return (
 		<ToastContext.Provider value={toastValue}>
@@ -55,6 +56,8 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
 	);
 };
 
+const defaultTimeoutMs = 3000;
+const defaultIntervalMs = 10;
 let toastIdCounter = 0; // Having an outside variable feels weird but toasts were inconsistent when I tried with a ref.
 export const useMakeToastMaker = () => {
 	// const toastIdCounter = useRef(0);
@@ -62,19 +65,45 @@ export const useMakeToastMaker = () => {
 	const closeToast = useCloseToast();
 
 	// Return a function that can be called to make a "makeToast" function.
-	return useCallback((ToastComponent: ToastComponent, timeoutMs: number) => {
-		// TODO!!! the ids and timeouts don't always stay in sync?
-		// The 2 lines below could perhaps be moved to inside the setToasts function. When using a ref for
-		// toastIdCounter they *have* to be in there or else toasts get really out of order for some reason.
-		// But as is, with the `let toastIdCounter`, where the 2 lines is should be fine and imo makes more sense.
-		const id = toastIdCounter++; // toastIdCounter.current++;
-		setTimeout(() => closeToast(id), timeoutMs);
-		setToasts((oldToasts) => {
-			const newToasts = new Map(oldToasts);
-			newToasts.set(id, ToastComponent);
-			return newToasts;
-		});
-	}, []);
+	return useCallback(
+		(
+			ToastComponent: ToastComponent,
+			timeoutMs = defaultTimeoutMs,
+			intervalMs: number | null = defaultIntervalMs
+		) => {
+			const id = toastIdCounter++; // toastIdCounter.current++;
+
+			setToasts((oldToasts) => {
+				const newToasts = new Map(oldToasts);
+				newToasts.set(id, { msLeft: timeoutMs, ToastComponent });
+				return newToasts;
+			});
+
+			let intervalId = 0; // Allow for interval-less toasts by passing null to intervalMs.
+			if (intervalMs !== null) {
+				intervalId = window.setInterval(() => {
+					// All this `new Map` stuff feels inefficient, but in practice there's only a few toasts at once.
+					setToasts((oldToasts) => {
+						// Update the msLeft of this particular toast.
+						const currentToast = oldToasts.get(id);
+						if (!currentToast) return oldToasts;
+						const newToasts = new Map(oldToasts);
+						newToasts.set(id, { ...currentToast, msLeft: currentToast.msLeft - intervalMs });
+						return newToasts;
+					});
+				}, intervalMs);
+			}
+
+			// Having a separate setTimeout ensures the toast will close at the right time regardless of intervalMs.
+			window.setTimeout(() => {
+				if (intervalMs !== null) {
+					window.clearInterval(intervalId);
+				}
+				closeToast(id);
+			}, timeoutMs); // Should this timeout ever be cleared? Don't think so but where and how would it happen?
+		},
+		[setToasts, closeToast]
+	);
 };
 
 //#region Bootstrap Specific Toast Code:
@@ -89,29 +118,49 @@ const callPossibleFunction = <TReturn, TArg>(possibleFunction: PossibleFunctionO
 };
 
 export type BootstrapVariant = "primary" | "secondary" | "success" | "danger" | "warning" | "info" | "light" | "dark";
+
+const BootstrapToast = ({
+	message,
+	title,
+	variant,
+	close,
+}: {
+	message?: string;
+	title?: string;
+	variant?: BootstrapVariant;
+	close: () => void;
+}) => (
+	// Intentionally not using Bootstrap's built in delay and autohide.
+	<Toast onClose={close} bg={variant}>
+		{title ? (
+			<Toast.Header className="fw-bold d-flex justify-content-between">{title}</Toast.Header>
+		) : (
+			<Toast.Header className="d-flex justify-content-end"></Toast.Header>
+		)}
+		{message && <Toast.Body>{message}</Toast.Body>}
+	</Toast>
+);
+
 export const useMakeBootstrapToast = () => {
 	const makeToastMaker = useMakeToastMaker();
 	return (
-		// TODO!!! msLeft as function input too??
-		message?: PossibleFunctionOf<string, { id: number }>,
-		title?: PossibleFunctionOf<string, { id: number }>,
+		message?: PossibleFunctionOf<string, ToastArgs>,
+		title?: PossibleFunctionOf<string, ToastArgs>,
 		variant?: BootstrapVariant,
-		timeoutMs = 3000
+		timeoutMs?: number
 	) => {
-		return makeToastMaker(({ id, close }) => {
-			const concreteMessage = callPossibleFunction(message, { id });
-			const concreteTitle = callPossibleFunction(title, { id });
-			return (
-				<Toast onClose={close} bg={variant}>
-					{title ? (
-						<Toast.Header className="fw-bold d-flex justify-content-between">{concreteTitle}</Toast.Header>
-					) : (
-						<Toast.Header className="d-flex justify-content-end"></Toast.Header>
-					)}
-					{concreteMessage && <Toast.Body>{concreteMessage}</Toast.Body>}
-				</Toast>
-			);
-		}, timeoutMs);
+		return makeToastMaker(
+			({ id, msLeft, close }) => (
+				<BootstrapToast
+					message={callPossibleFunction(message, { id, msLeft })}
+					title={callPossibleFunction(title, { id, msLeft })}
+					variant={variant}
+					close={close}
+				/>
+			),
+			timeoutMs
+			// 100 null <-- Can play with intervalMs here.
+		);
 	};
 };
 
