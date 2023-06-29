@@ -72,8 +72,8 @@ const SignUpPage = () => {
 						</h3>
 						<Form.Control
 							name="email"
-							// type="email"
-							// autoComplete="email"
+							type="email"
+							autoComplete="email"
 							placeholder="Email"
 							value={email}
 							onChange={(e) => setEmail(e.target.value)}
