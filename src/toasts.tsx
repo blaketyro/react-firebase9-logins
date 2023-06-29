@@ -3,11 +3,11 @@ import Toast from "react-bootstrap/Toast";
 import { createPortal } from "react-dom";
 
 export const defaultToastPortalId = "toast-portal";
-export const defaultToastTimeoutMs = 3000;
+export const defaultToastTimeoutMs = 2500;
 export const defaultToastIntervalMs = 10;
 
-type ToastData = { ToastComponent: ToastComponent; timeoutMs: number | null; currentMs: number };
-type ToastArgs = { id: number; timeoutMs: number | null; currentMs: number; remainingMs: number | null };
+type ToastData = { ToastComponent: ToastComponent; timeoutMs: number; currentMs: number };
+type ToastArgs = { id: number; timeoutMs: number; currentMs: number; remainingMs: number };
 type ToastComponent = (props: ToastArgs & { close: () => void }) => ReactNode;
 
 const useCloseToast = () => {
@@ -42,7 +42,7 @@ const ToastPortal = ({ toasts, toastPortalId }: { toasts: ReadonlyMap<number, To
 			Array.from(toasts.entries())
 				.reverse() // Reverse so later toasts are at the top.
 				.map(([id, { ToastComponent, timeoutMs, currentMs }], key) => {
-					const remainingMs = timeoutMs === null ? null : timeoutMs - currentMs;
+					const remainingMs = timeoutMs - currentMs;
 					return (
 						<ToastComponent
 							{...{ key, id, timeoutMs, currentMs, remainingMs, close: () => closeToast(id) }}
@@ -81,9 +81,9 @@ export const useMakeToastMaker = () => {
 	return useCallback(
 		(
 			ToastComponent: ToastComponent,
-			timeoutMs: number | null = defaultToastTimeoutMs,
-			intervalMs: number | null = defaultToastIntervalMs
-			// Allow for infinite and interval-less toasts by passing in null to timeoutMs or intervalMs.
+			timeoutMs = defaultToastTimeoutMs,
+			intervalMs = defaultToastIntervalMs
+			// Endless or interval-less toasts are possible by passing Infinity to timeoutMs or intervalMs.
 		) => {
 			const id = ++toastIdCounter; // ++toastIdCounter.current;
 
@@ -94,7 +94,7 @@ export const useMakeToastMaker = () => {
 			});
 
 			let intervalId = 0;
-			if (intervalMs !== null) {
+			if (intervalMs !== Infinity) {
 				intervalId = window.setInterval(() => {
 					// All this `new Map` stuff feels inefficient, but in practice there's only a few toasts at once.
 					setToasts((oldToasts) => {
@@ -108,10 +108,10 @@ export const useMakeToastMaker = () => {
 				}, intervalMs);
 			}
 
-			if (timeoutMs !== null) {
+			if (timeoutMs !== Infinity) {
 				// Having a separate setTimeout ensures the toast will close at the right time regardless of intervalMs.
 				window.setTimeout(() => {
-					if (intervalMs !== null) {
+					if (intervalMs !== Infinity) {
 						window.clearInterval(intervalId);
 					}
 					closeToast(id);
@@ -139,15 +139,17 @@ const BootstrapToast = ({
 	message,
 	title,
 	variant,
+	opacity,
 	close,
 }: {
 	message?: string;
 	title?: string;
 	variant?: BootstrapVariant;
+	opacity: number;
 	close: () => void;
 }) => (
 	// Intentionally not using Bootstrap's built in delay and autohide.
-	<Toast onClose={close} bg={variant}>
+	<Toast onClose={close} bg={variant} style={{ opacity }}>
 		{title ? (
 			<Toast.Header className="fw-bold d-flex justify-content-between">{title}</Toast.Header>
 		) : (
@@ -157,7 +159,7 @@ const BootstrapToast = ({
 	</Toast>
 );
 
-export const useMakeBootstrapToast = () => {
+export const useMakeToast = () => {
 	const makeToastMaker = useMakeToastMaker();
 	return (
 		message?: PossibleFunctionOf<string, ToastArgs>,
@@ -174,10 +176,11 @@ export const useMakeBootstrapToast = () => {
 					title={callPossibleFunction(title, { id, timeoutMs, currentMs, remainingMs })}
 					variant={variant}
 					close={close}
+					opacity={remainingMs && remainingMs >= 100 ? 1 : 2}
 				/>
 			),
-			timeoutMs // <-- Can put null here to make toasts endless.
-			// 100 null <-- Can play with intervalMs here.
+			timeoutMs, // <-- Can put Infinity here to make toasts endless.
+			100 // 100 Infinity <-- Can play with intervalMs here.
 		);
 	};
 };
