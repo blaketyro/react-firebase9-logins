@@ -2,6 +2,10 @@ import { Dispatch, ReactNode, SetStateAction, createContext, useCallback, useCon
 import Toast from "react-bootstrap/Toast";
 import { createPortal } from "react-dom";
 
+export const defaultToastPortalId = "toast-portal";
+export const defaultToastTimeoutMs = 3000;
+export const defaultToastIntervalMs = 10;
+
 type ToastData = { ToastComponent: ToastComponent; timeoutMs: number | null; currentMs: number };
 type ToastArgs = { id: number; timeoutMs: number | null; currentMs: number; remainingMs: number | null };
 type ToastComponent = (props: ToastArgs & { close: () => void }) => ReactNode;
@@ -29,8 +33,8 @@ const ToastContext = createContext<{
 	setToasts: () => null,
 });
 
-const ToastPortal = ({ toasts }: { toasts: ReadonlyMap<number, ToastData> }) => {
-	const toastPortal = document.getElementById("toast-portal");
+const ToastPortal = ({ toasts, toastPortalId }: { toasts: ReadonlyMap<number, ToastData>; toastPortalId: string }) => {
+	const toastPortal = document.getElementById(toastPortalId);
 	const closeToast = useCloseToast();
 	return (
 		toastPortal &&
@@ -50,19 +54,22 @@ const ToastPortal = ({ toasts }: { toasts: ReadonlyMap<number, ToastData> }) => 
 	);
 };
 
-export const ToastProvider = ({ children }: { children: ReactNode }) => {
+export const ToastProvider = ({
+	children,
+	toastPortalId = defaultToastPortalId,
+}: {
+	children: ReactNode;
+	toastPortalId?: string;
+}) => {
 	const toastState = useState<ReadonlyMap<number, ToastData>>(new Map());
 	const toastValue = useMemo(() => ({ toasts: toastState[0], setToasts: toastState[1] }), [toastState]);
 	return (
 		<ToastContext.Provider value={toastValue}>
 			{children}
-			<ToastPortal toasts={toastValue.toasts} />
+			<ToastPortal toasts={toastValue.toasts} toastPortalId={toastPortalId} />
 		</ToastContext.Provider>
 	);
 };
-
-export const defaultToastTimeoutMs = 3000;
-export const defaultToastIntervalMs = 10;
 
 let toastIdCounter = 0; // Having an outside variable feels weird but toasts were inconsistent when I tried with a ref.
 export const useMakeToastMaker = () => {
