@@ -163,8 +163,8 @@ export const useMakeToast = () => {
 	const makeToastMaker = useMakeToastMaker();
 	return (
 		message?: PossibleFunctionOf<string, ToastArgs>,
-		variant?: BootstrapVariant,
 		title?: PossibleFunctionOf<string, ToastArgs>,
+		variant?: BootstrapVariant,
 		timeoutMs?: number
 	) => {
 		const fadeMs = 100;

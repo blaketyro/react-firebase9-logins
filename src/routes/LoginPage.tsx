@@ -2,17 +2,15 @@ import { useState } from "react";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
+import { useNavigate } from "react-router-dom";
 import AlreadyLoggedInGuard from "../components/AlreadyLoggedInGuard";
 import Box from "../components/Box";
-import { signInWithToasts } from "../loginHelpers";
+import { signIn } from "../logins";
 import { useMakeToast } from "../toasts";
-
-// TODO!!! wrong password prompt
-// TODO!!! unknown email prompt
-// TODO!!! redirect home on successful login
 
 const LoginPage = () => {
 	const makeToast = useMakeToast();
+	const navigate = useNavigate();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 
@@ -21,10 +19,34 @@ const LoginPage = () => {
 			<AlreadyLoggedInGuard>
 				<Form
 					onSubmit={(event) => {
-						void signInWithToasts(makeToast, email, password);
-						setEmail("");
-						setPassword("");
 						event.preventDefault();
+						void (async () => {
+							const makeErrorToast = (message: string) => makeToast(message, "Login Error", "danger");
+							setPassword(""); // Always clear password.
+
+							switch (await signIn(email, password)) {
+								case undefined:
+									makeToast("Successfully signed in", "Logged In", "success");
+									setEmail("");
+									navigate("/");
+									break;
+								case "auth/invalid-email":
+									makeErrorToast("Invalid email address");
+									break;
+								case "auth/user-not-found":
+									makeErrorToast("User not found");
+									break;
+								case "auth/missing-password":
+									makeErrorToast("No password provided");
+									break;
+								case "auth/wrong-password":
+									makeErrorToast("Incorrect password");
+									break;
+								case "unspecified-error":
+									makeErrorToast("Unspecified error signing in");
+									setEmail("");
+							}
+						})();
 					}}
 				>
 					<Stack gap={2}>

@@ -45,7 +45,8 @@
 		"rules": {
 			"prefer-arrow-callback": "error",
 			"prefer-arrow/prefer-arrow-functions": "warn",
-			"@typescript-eslint/no-redeclare": "off"
+			"@typescript-eslint/no-redeclare": "off",
+			"@typescript-eslint/switch-exhaustiveness-check": "warn"
 		}
 	},
 	"browserslist": {

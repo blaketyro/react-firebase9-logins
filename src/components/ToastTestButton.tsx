@@ -18,8 +18,8 @@ const ToastTestButton = ({ variant, timeoutMs }: { variant: BootstrapVariant; ti
 							".".repeat(Math.floor((58 * remainingMs) / timeoutMs)) // 58 periods about fills the box.
 						);
 					},
-					variant,
 					({ id }) => `🔥🍞 Toast Test ${id}`,
+					variant,
 					timeoutMs
 				)
 			}

@@ -5,8 +5,7 @@ import Navbar from "react-bootstrap/Navbar";
 import Stack from "react-bootstrap/Stack";
 import { Link, Outlet } from "react-router-dom";
 import ToastTestButton from "../components/ToastTestButton";
-import { signOutWithToasts } from "../loginHelpers";
-import { useUser } from "../logins";
+import { signOutWithToasts, useUser } from "../logins";
 import { useMakeToast } from "../toasts";
 
 const Header = () => {
@@ -32,7 +31,7 @@ const Header = () => {
 			{user ? (
 				<Stack gap={2} direction="horizontal">
 					<Navbar.Text className="text-info">Signed in as {user.email}</Navbar.Text>
-					<Button variant="secondary" size="sm" onClick={() => void signOutWithToasts(makeToast)}>
+					<Button variant="secondary" size="sm" onClick={() => signOutWithToasts(makeToast)}>
 						Sign Out
 					</Button>
 				</Stack>
