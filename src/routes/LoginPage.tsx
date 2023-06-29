@@ -2,56 +2,60 @@ import { useState } from "react";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
+import AlreadyLoggedInGuard from "../components/AlreadyLoggedInGuard";
 import Box from "../components/Box";
-import { signIn } from "../logins";
+import { signInWithToasts } from "../loginHelpers";
+import { useMakeToast } from "../toasts";
 
 // TODO!!! wrong password prompt
 // TODO!!! unknown email prompt
 // TODO!!! redirect home on successful login
-// TODO!!! handle if already logged in
 
 const LoginPage = () => {
+	const makeToast = useMakeToast();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 
 	return (
 		<Box>
-			<Form
-				onSubmit={(event) => {
-					void signIn(email, password);
-					setEmail("");
-					setPassword("");
-					event.preventDefault();
-				}}
-			>
-				<Stack gap={2}>
-					<h3
-						onClick={() => {
-							setEmail("example@example.com");
-							setPassword("example");
-						}}
-					>
-						Login
-					</h3>
-					<Form.Control
-						name="email"
-						type="email"
-						autoComplete="email"
-						placeholder="Email"
-						value={email}
-						onChange={(e) => setEmail(e.target.value)}
-					/>
-					<Form.Control
-						name="Password"
-						type="password"
-						autoComplete="current-password"
-						placeholder="Password"
-						value={password}
-						onChange={(e) => setPassword(e.target.value)}
-					/>
-					<Button type="submit">Sign In</Button>
-				</Stack>
-			</Form>
+			<AlreadyLoggedInGuard>
+				<Form
+					onSubmit={(event) => {
+						void signInWithToasts(makeToast, email, password);
+						setEmail("");
+						setPassword("");
+						event.preventDefault();
+					}}
+				>
+					<Stack gap={2}>
+						<h3
+							onClick={() => {
+								setEmail("example@example.com");
+								setPassword("example");
+							}}
+						>
+							Login
+						</h3>
+						<Form.Control
+							name="email"
+							type="email"
+							autoComplete="email"
+							placeholder="Email"
+							value={email}
+							onChange={(e) => setEmail(e.target.value)}
+						/>
+						<Form.Control
+							name="Password"
+							type="password"
+							autoComplete="current-password"
+							placeholder="Password"
+							value={password}
+							onChange={(e) => setPassword(e.target.value)}
+						/>
+						<Button type="submit">Sign In</Button>
+					</Stack>
+				</Form>
+			</AlreadyLoggedInGuard>
 		</Box>
 	);
 };

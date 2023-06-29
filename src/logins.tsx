@@ -62,7 +62,7 @@ const extractFirebaseErrorCode = <T extends string>(
 
 export const SignUpError = ["auth/email-already-in-use", "auth/invalid-email", "auth/weak-password"] as const;
 export type SignUpError = WithUnspecifiedError<typeof SignUpError>;
-export const signUp = async (email: string, password: string): Promise<void | SignUpError> => {
+export const signUp = async (email: string, password: string): Promise<undefined | SignUpError> => {
 	try {
 		const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 		debugMsg("Successfully signed up", userCredential.user.email);
@@ -86,7 +86,7 @@ export const signIn = async (email: string, password: string) => {
 
 export const SignOutError = [] as const; // No common errors happen on sign out, but keep the same pattern.
 export type SignOutError = WithUnspecifiedError<typeof SignOutError>;
-export const signOut = async (): Promise<void | SignOutError> => {
+export const signOut = async () => {
 	try {
 		await firebaseSignOut(auth);
 		debugMsg("Successfully signed out");

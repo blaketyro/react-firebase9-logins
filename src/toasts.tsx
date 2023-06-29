@@ -3,7 +3,7 @@ import Toast from "react-bootstrap/Toast";
 import { createPortal } from "react-dom";
 
 export const defaultToastPortalId = "toast-portal";
-export const defaultToastTimeoutMs = 2500;
+export const defaultToastTimeoutMs = 2000;
 export const defaultToastIntervalMs = 10;
 
 type ToastData = { ToastComponent: ToastComponent; timeoutMs: number; currentMs: number };
@@ -176,7 +176,7 @@ export const useMakeToast = () => {
 					message={callPossibleFunction(message, { id, timeoutMs, currentMs, remainingMs })}
 					title={callPossibleFunction(title, { id, timeoutMs, currentMs, remainingMs })}
 					variant={variant}
-					opacity={remainingMs < fadeMs ? remainingMs / fadeMs : 1}
+					opacity={currentMs < fadeMs ? currentMs / fadeMs : remainingMs < fadeMs ? remainingMs / fadeMs : 1}
 					close={close}
 				/>
 			),

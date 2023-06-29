@@ -29,7 +29,7 @@ a {
 #toast-portal {
 	max-width: 100%;
 	position: fixed;
-	padding: 3rem 0.5rem;
+	padding: 0.5rem;
 	top: 0;
 	left: 50%;
 	transform: translateX(-50%);
