@@ -3,7 +3,7 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
 import { useNavigate } from "react-router-dom";
-import { signUp } from "../accounts";
+import { signUp, verifyEmail } from "../accounts";
 import AlreadySignedInGuard from "../components/AlreadySignedInGuard";
 import Box from "../components/Box";
 import { useMakeToast } from "../toasts";
@@ -29,10 +29,16 @@ const SignUpPage = () => {
 							// Debatable when exactly which textboxes should be cleared.
 							switch (await signUp(email, password, passwordConfirmation)) {
 								case undefined:
-									makeToast("Successfully signed up!", "Signed Up", "success");
 									setEmail("");
 									setPassword("");
 									setPasswordConfirmation("");
+									verifyEmail();
+									makeToast(
+										"Successfully signed up! A verification email has been sent.",
+										"Signed Up",
+										"success",
+										4000
+									);
 									navigate("/");
 									break;
 								case "auth/email-already-in-use":
@@ -52,10 +58,10 @@ const SignUpPage = () => {
 									setPasswordConfirmation("");
 									break;
 								case "misc/unspecified-error":
-									makeErrorToast("Unspecified error signing in");
 									setEmail("");
 									setPassword("");
 									setPasswordConfirmation("");
+									makeErrorToast("Unspecified error signing in");
 							}
 						})();
 					}}

@@ -25,8 +25,8 @@ const SignInPage = () => {
 							setPassword(""); // Always clear password.
 							switch (await signIn(email, password)) {
 								case undefined:
-									makeToast("Successfully signed in!", "Signed In", "success");
 									setEmail("");
+									makeToast("Successfully signed in!", "Signed In", "success");
 									navigate("/");
 									break;
 								case "auth/invalid-email":
@@ -42,8 +42,8 @@ const SignInPage = () => {
 									makeErrorToast("Incorrect password");
 									break;
 								case "misc/unspecified-error":
-									makeErrorToast("Unspecified error signing in");
 									setEmail("");
+									makeErrorToast("Unspecified error signing in");
 							}
 						})();
 					}}

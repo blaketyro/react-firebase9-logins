@@ -26,7 +26,8 @@ const HomePage = () => {
 			<Stack gap={2}>
 				<h3>Homepage</h3>
 				<p>
-					This website, <a href="https://react-firebase9-logins.web.app/">react-firebase9-logins.web.app</a>,
+					This website,{" "}
+					<a href="https://react-firebase9-logins.firebaseapp.com">react-firebase9-logins.firebaseapp.com</a>,
 					is a demo Firebase app that implements user logins and accounts using the{" "}
 					<a href="https://firebase.google.com/docs/web/modular-upgrade">Firebase 9+ modular API</a>, as well
 					as the{" "}
@@ -36,7 +37,8 @@ const HomePage = () => {
 					. It is built with <a href="https://www.typescriptlang.org/">Typescript</a>,{" "}
 					<a href="https://react.dev/">React</a>, <a href="https://reactrouter.com/en/main">React Router</a>,
 					and <a href="https://react-bootstrap.netlify.app/">React Bootstrap</a>, and, of course, Google's{" "}
-					<a href="https://firebase.google.com/">Firebase</a>.
+					<a href="https://firebase.google.com/">Firebase</a>, especially the{" "}
+					<a href="https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth">auth</a> features.
 				</p>
 				<p>
 					I made it for practice to understand Firebase and user auth systems better. The code is available{" "}
