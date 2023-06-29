@@ -65,19 +65,21 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
 	);
 };
 
+let toastIdCounter = 0; // Having an outside variable feels weird but toasts were inconsistent when I tried with a ref.
 export const useMakeToastMaker = () => {
-	const toastIdCounter = useRef(0);
+	// const toastIdCounter = useRef(0);
 	const { setToasts } = useContext(ToastContext);
 	const closeToast = useCloseToast();
 
-	// Returns a generic toast maker function
+	// Return a function that can be called to make a "makeToast" function.
 	return useCallback((ToastComponent: ToastComponent, timeoutMs: number) => {
 		// TODO!!! the ids and timeouts don't always stay in sync?
+		// The 2 lines below could perhaps be moved to inside the setToasts function. When using a ref for
+		// toastIdCounter they *have* to be in there or else toasts get really out of order for some reason.
+		// But as is, with the `let toastIdCounter`, where the 2 lines is should be fine and imo makes more sense.
+		const id = toastIdCounter++; // toastIdCounter.current++;
+		setTimeout(() => closeToast(id), timeoutMs);
 		setToasts((oldToasts) => {
-			const id = toastIdCounter.current++;
-			setTimeout(() => {
-				closeToast(id);
-			}, timeoutMs);
 			const newToasts = new Map(oldToasts);
 			newToasts.set(id, ToastComponent);
 			return newToasts;
