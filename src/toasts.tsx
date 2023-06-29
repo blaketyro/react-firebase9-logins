@@ -155,7 +155,7 @@ const BootstrapToast = ({
 		) : (
 			<Toast.Header className="d-flex justify-content-end"></Toast.Header>
 		)}
-		{message && <Toast.Body>{message}</Toast.Body>}
+		<Toast.Body>{message}</Toast.Body>
 	</Toast>
 );
 
@@ -163,10 +163,11 @@ export const useMakeToast = () => {
 	const makeToastMaker = useMakeToastMaker();
 	return (
 		message?: PossibleFunctionOf<string, ToastArgs>,
-		title?: PossibleFunctionOf<string, ToastArgs>,
 		variant?: BootstrapVariant,
+		title?: PossibleFunctionOf<string, ToastArgs>,
 		timeoutMs?: number
 	) => {
+		const fadeMs = 100;
 		return makeToastMaker(
 			({ id, timeoutMs, currentMs, remainingMs, close }) => (
 				// Things break for some reason when close gets directly sent to the callPossibleFunction calls.
@@ -175,12 +176,12 @@ export const useMakeToast = () => {
 					message={callPossibleFunction(message, { id, timeoutMs, currentMs, remainingMs })}
 					title={callPossibleFunction(title, { id, timeoutMs, currentMs, remainingMs })}
 					variant={variant}
+					opacity={remainingMs < fadeMs ? remainingMs / fadeMs : 1}
 					close={close}
-					opacity={remainingMs && remainingMs >= 100 ? 1 : 2}
 				/>
 			),
-			timeoutMs, // <-- Can put Infinity here to make toasts endless.
-			100 // 100 Infinity <-- Can play with intervalMs here.
+			timeoutMs // <-- Can put Infinity here to make toasts endless.
+			// 100 Infinity <-- Can play with intervalMs here.
 		);
 	};
 };

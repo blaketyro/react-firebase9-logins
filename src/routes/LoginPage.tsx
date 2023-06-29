@@ -25,7 +25,14 @@ const LoginPage = () => {
 				}}
 			>
 				<Stack gap={2}>
-					<h3>Login</h3>
+					<h3
+						onClick={() => {
+							setEmail("example@example.com");
+							setPassword("example");
+						}}
+					>
+						Login
+					</h3>
 					<Form.Control
 						name="email"
 						type="email"
