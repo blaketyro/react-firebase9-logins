@@ -2,9 +2,9 @@ import { Dispatch, ReactNode, SetStateAction, createContext, useCallback, useCon
 import Toast from "react-bootstrap/Toast";
 import { createPortal } from "react-dom";
 
-type ToastArgs = { id: number; msLeft: number };
-type ToastComponent = ({ id, msLeft, close }: ToastArgs & { close: () => void }) => ReactNode;
-type ToastData = { msLeft: number; ToastComponent: ToastComponent };
+type ToastData = { ToastComponent: ToastComponent; timeoutMs: number | null; currentMs: number };
+type ToastArgs = { id: number; timeoutMs: number | null; currentMs: number; remainingMs: number | null };
+type ToastComponent = (props: ToastArgs & { close: () => void }) => ReactNode;
 
 const useCloseToast = () => {
 	const { setToasts } = useContext(ToastContext);
@@ -37,9 +37,14 @@ const ToastPortal = ({ toasts }: { toasts: ReadonlyMap<number, ToastData> }) => 
 		createPortal(
 			Array.from(toasts.entries())
 				.reverse() // Reverse so later toasts are at the top.
-				.map(([id, { msLeft, ToastComponent }], key) => (
-					<ToastComponent key={key} id={id} msLeft={msLeft} close={() => closeToast(id)} />
-				)),
+				.map(([id, { ToastComponent, timeoutMs, currentMs }], key) => {
+					const remainingMs = timeoutMs === null ? null : timeoutMs - currentMs;
+					return (
+						<ToastComponent
+							{...{ key, id, timeoutMs, currentMs, remainingMs, close: () => closeToast(id) }}
+						/>
+					);
+				}),
 			toastPortal
 		)
 	);
@@ -56,8 +61,9 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
 	);
 };
 
-const defaultTimeoutMs = 3000;
-const defaultIntervalMs = 10;
+export const defaultToastTimeoutMs = 3000;
+export const defaultToastIntervalMs = 10;
+
 let toastIdCounter = 0; // Having an outside variable feels weird but toasts were inconsistent when I tried with a ref.
 export const useMakeToastMaker = () => {
 	// const toastIdCounter = useRef(0);
@@ -68,18 +74,19 @@ export const useMakeToastMaker = () => {
 	return useCallback(
 		(
 			ToastComponent: ToastComponent,
-			timeoutMs = defaultTimeoutMs,
-			intervalMs: number | null = defaultIntervalMs
+			timeoutMs: number | null = defaultToastTimeoutMs,
+			intervalMs: number | null = defaultToastIntervalMs
+			// Allow for infinite and interval-less toasts by passing in null to timeoutMs or intervalMs.
 		) => {
-			const id = toastIdCounter++; // toastIdCounter.current++;
+			const id = ++toastIdCounter; // ++toastIdCounter.current;
 
 			setToasts((oldToasts) => {
 				const newToasts = new Map(oldToasts);
-				newToasts.set(id, { msLeft: timeoutMs, ToastComponent });
+				newToasts.set(id, { ToastComponent, timeoutMs, currentMs: 0 });
 				return newToasts;
 			});
 
-			let intervalId = 0; // Allow for interval-less toasts by passing null to intervalMs.
+			let intervalId = 0;
 			if (intervalMs !== null) {
 				intervalId = window.setInterval(() => {
 					// All this `new Map` stuff feels inefficient, but in practice there's only a few toasts at once.
@@ -88,19 +95,21 @@ export const useMakeToastMaker = () => {
 						const currentToast = oldToasts.get(id);
 						if (!currentToast) return oldToasts;
 						const newToasts = new Map(oldToasts);
-						newToasts.set(id, { ...currentToast, msLeft: currentToast.msLeft - intervalMs });
+						newToasts.set(id, { ...currentToast, currentMs: currentToast.currentMs + intervalMs });
 						return newToasts;
 					});
 				}, intervalMs);
 			}
 
-			// Having a separate setTimeout ensures the toast will close at the right time regardless of intervalMs.
-			window.setTimeout(() => {
-				if (intervalMs !== null) {
-					window.clearInterval(intervalId);
-				}
-				closeToast(id);
-			}, timeoutMs); // Should this timeout ever be cleared? Don't think so but where and how would it happen?
+			if (timeoutMs !== null) {
+				// Having a separate setTimeout ensures the toast will close at the right time regardless of intervalMs.
+				window.setTimeout(() => {
+					if (intervalMs !== null) {
+						window.clearInterval(intervalId);
+					}
+					closeToast(id);
+				}, timeoutMs); // Should this timeout ever be cleared? Don't think so but where and how would it happen?
+			}
 		},
 		[setToasts, closeToast]
 	);
@@ -150,15 +159,17 @@ export const useMakeBootstrapToast = () => {
 		timeoutMs?: number
 	) => {
 		return makeToastMaker(
-			({ id, msLeft, close }) => (
+			({ id, timeoutMs, currentMs, remainingMs, close }) => (
+				// Things break for some reason when close gets directly sent to the callPossibleFunction calls.
+				// So split everything up creating new new objects `{ id, timeoutMs, currentMs, remainingMs }`.
 				<BootstrapToast
-					message={callPossibleFunction(message, { id, msLeft })}
-					title={callPossibleFunction(title, { id, msLeft })}
+					message={callPossibleFunction(message, { id, timeoutMs, currentMs, remainingMs })}
+					title={callPossibleFunction(title, { id, timeoutMs, currentMs, remainingMs })}
 					variant={variant}
 					close={close}
 				/>
 			),
-			timeoutMs
+			timeoutMs // <-- Can put null here to make toasts endless.
 			// 100 null <-- Can play with intervalMs here.
 		);
 	};

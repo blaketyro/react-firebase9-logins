@@ -11,9 +11,13 @@ const ToastTestButton = ({ variant, timeoutMs }: { variant: BootstrapVariant; ti
 			onClick={() =>
 				makeToast(
 					// Message is rudimentary text progress bar. With this toast system a proper graphical one is easy!
-					({ msLeft }) =>
-						`Closing in ${(msLeft / 1000).toFixed(2)}s ` +
-						".".repeat(Math.floor((58 * msLeft) / timeoutMs)),
+					({ remainingMs }) => {
+						if (remainingMs === null) return "Endless";
+						return (
+							`Closing in ${(remainingMs / 1000).toFixed(2)}s ` +
+							".".repeat(Math.floor((58 * remainingMs) / timeoutMs)) // 58 periods about fills the box.
+						);
+					},
 					({ id }) => `🔥🍞 Toast Test ${id}`,
 					variant,
 					timeoutMs
