@@ -23,10 +23,9 @@ const SignInPage = () => {
 						void (async () => {
 							const makeErrorToast = (message: string) => makeToast(message, "Sign In Error", "danger");
 							setPassword(""); // Always clear password.
-
 							switch (await signIn(email, password)) {
 								case undefined:
-									makeToast("Successfully signed in", "Signed In", "success");
+									makeToast("Successfully signed in!", "Signed In", "success");
 									setEmail("");
 									navigate("/");
 									break;
@@ -42,7 +41,7 @@ const SignInPage = () => {
 								case "auth/wrong-password":
 									makeErrorToast("Incorrect password");
 									break;
-								case "unspecified-error":
+								case "misc/unspecified-error":
 									makeErrorToast("Unspecified error signing in");
 									setEmail("");
 							}

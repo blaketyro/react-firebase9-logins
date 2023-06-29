@@ -44,14 +44,11 @@ export const useUser = () => useContext(UserContext);
 // The sign up/in/out functions below convert the errors Firebase throws into strings that are returned instead.
 // This allows Typescript to know what exact "errors" (returns) can happen, giving better type safety.
 
-export const UnspecifiedError = "unspecified-error";
+export const UnspecifiedError = "misc/unspecified-error";
 export type UnspecifiedError = typeof UnspecifiedError;
 type WithUnspecifiedError<T extends readonly string[] = []> = UnspecifiedError | T[number];
 
-const extractFirebaseErrorCode = <T extends string>(
-	error: unknown,
-	specifiedErrors: readonly T[]
-): UnspecifiedError | T => {
+const extractErrorCode = <T extends string>(error: unknown, specifiedErrors: readonly T[]): UnspecifiedError | T => {
 	if (
 		error !== null &&
 		typeof error === "object" &&
@@ -64,15 +61,24 @@ const extractFirebaseErrorCode = <T extends string>(
 	return UnspecifiedError;
 };
 
-export const SignUpError = ["auth/email-already-in-use", "auth/invalid-email", "auth/weak-password"] as const;
+export const SignUpError = [
+	"auth/email-already-in-use",
+	"auth/invalid-email",
+	"auth/missing-password",
+	"auth/weak-password",
+	"misc/unconfirmed-password",
+] as const;
 export type SignUpError = WithUnspecifiedError<typeof SignUpError>;
-export const signUp = async (email: string, password: string) => {
+export const signUp = async (email: string, password: string, passwordConfirmation: string) => {
 	try {
+		if (password !== passwordConfirmation) {
+			throw { code: "misc/unconfirmed-password" }; // Note that passwords of some or all whitespace are allowed.
+		}
 		const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 		debugMsg("Successfully signed up", userCredential.user.email);
 	} catch (error) {
 		debugMsg("Error signing up:", error);
-		return extractFirebaseErrorCode(error, SignUpError);
+		return extractErrorCode(error, SignUpError);
 	}
 };
 
@@ -89,7 +95,7 @@ export const signIn = async (email: string, password: string) => {
 		debugMsg("Successfully signed in", userCredential.user.email);
 	} catch (error) {
 		debugMsg("Error signing in:", error);
-		return extractFirebaseErrorCode(error, SignInError);
+		return extractErrorCode(error, SignInError);
 	}
 };
 
@@ -101,18 +107,18 @@ export const signOut = async () => {
 		debugMsg("Successfully signed out");
 	} catch (error) {
 		debugMsg("Error signing out:", error);
-		return extractFirebaseErrorCode(error, SignOutError);
+		return extractErrorCode(error, SignOutError);
 	}
 };
 
+// This function doesn't strictly belong in this file but not sure where else to put it:
 export const signOutWithToasts = (makeToast: ReturnType<typeof useMakeToast>) => {
-	// This function doesn't strictly belong in this file but not sure where else to put it.
 	void (async () => {
 		switch (await signOut()) {
 			case undefined:
 				makeToast("Successfully signed out", "Signed Out");
 				break;
-			case "unspecified-error":
+			case "misc/unspecified-error":
 				makeToast("Unspecified error signing out", "Sign Out Error", "danger");
 		}
 	})();
