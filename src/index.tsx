@@ -9,6 +9,7 @@ import HomePage from "./routes/HomePage";
 import Root from "./routes/Root";
 import SignInPage from "./routes/SignInPage";
 import SignUpPage from "./routes/SignUpPage";
+import VerifyEmailPage from "./routes/VerifyEmailPage";
 import { ToastProvider } from "./toasts";
 
 const router = createBrowserRouter([
@@ -28,6 +29,10 @@ const router = createBrowserRouter([
 			{
 				path: "sign-up",
 				element: <SignUpPage />,
+			},
+			{
+				path: "verify-email",
+				element: <VerifyEmailPage />,
 			},
 		],
 	},

@@ -26,6 +26,9 @@ const Header = () => {
 					<Link to="/sign-in" className="nav-link">
 						Sign In
 					</Link>
+					<Link to="/verify-email" className="nav-link">
+						Verify Email
+					</Link>
 				</Stack>
 			</Nav>
 			{user ? (

@@ -45,9 +45,7 @@ export const useUser = () => useContext(UserContext);
 
 //#endregion
 
-//#region Sign Up, Sign In, Sign Out:
-
-// The sign up/in/out functions below convert the errors Firebase throws into strings that are returned instead.
+// The sign up/in/out/etc. functions below convert the errors Firebase throws into strings that are returned instead.
 // This allows Typescript to know what exact "errors" (returns) can happen, giving better type safety.
 
 export const UnspecifiedError = "misc/unspecified-error";
@@ -108,30 +106,52 @@ export const signIn = async (email: string, password: string) => {
 };
 
 // Sign out docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#signout
+export const SignOutError = [] as const;
+export type SignOutError = WithUnspecifiedError<typeof SignInError>;
 export const signOut = async () => {
-	await firebaseSignOut(auth); // Sign out shouldn't throws errors, unlike sign up and sign in.
-	debugMsg("Successfully signed out");
+	// Sign out shouldn't normally throw errors, but follow the same array/try/catch pattern as sign up/in to be safe.
+	// There may be unexpected errors since the docs are not exhaustive and this is more consistent and future-proof.
+	try {
+		await firebaseSignOut(auth);
+		debugMsg("Successfully signed out");
+	} catch (error) {
+		debugMsg("Error signing out:", error);
+		return extractErrorCode(error, SignOutError);
+	}
 };
-
-// This function doesn't strictly belong in this file but not sure where else to put it:
 export const signOutWithToasts = (makeToast: ReturnType<typeof useMakeToast>) => {
+	// This function doesn't strictly belong in this file but not sure where else to put it.
 	void (async () => {
-		await signOut();
-		makeToast("Successfully signed out", "Signed Out");
+		switch (await signOut()) {
+			case undefined:
+				makeToast("Successfully signed out", "Signed Out");
+				break;
+			case "misc/unspecified-error":
+				makeToast("Unspecified error signing out", "Sign Out Error", "danger");
+		}
 	})();
 };
 
-//#endregion
-
-export const verifyEmail = (redirectUrl = publicSiteUrl) => {
+// Verify docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#sendemailverification
+export const SendVerificationEmailError = ["auth/too-many-requests", "misc/no-user", "misc/already-verified"] as const;
+export type SendVerificationEmailError = WithUnspecifiedError<typeof SignInError>;
+export const sendVerificationEmail = async (redirectUrl = publicSiteUrl) => {
+	try {
+		if (!auth.currentUser) {
+			throw { code: "misc/no-user" };
+		}
+		if (auth.currentUser.emailVerified) {
+			// Curiously, Firebase will happily send more emails to someone already verified.
+			throw { code: "misc/already-verified" };
+		}
+		await sendEmailVerification(auth.currentUser, { url: redirectUrl });
+		debugMsg("Sending verification email to", auth.currentUser?.email);
+	} catch (error) {
+		debugMsg("Error sending verification email:", error);
+		return extractErrorCode(error, SendVerificationEmailError);
+	}
 	// Verification email template can't be customized much:
 	// https://console.firebase.google.com/u/0/project/react-firebase9-logins/authentication/emails
 	// Could customize more following https://blog.logrocket.com/send-custom-email-templates-firebase-react-express
 	// which uses SendGrid which allows 100 emails per day free: https://sendgrid.com/pricing/
-	debugMsg("Sending verification email to", auth.currentUser?.email);
-	if (auth.currentUser) {
-		void sendEmailVerification(auth.currentUser, { url: redirectUrl });
-	}
 };
-
-// TODO!!! Separate email verification page.

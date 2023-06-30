@@ -8,7 +8,9 @@ const ErrorPage = () => {
 			<Alert variant="danger">
 				<h3>An error occurred!</h3>
 				<p>Most likely the page you're trying to visit doesn't exist.</p>
-				<Link to="/">Back to homepage</Link>
+				<div>
+					<Link to="/">Back to homepage</Link>
+				</div>
 			</Alert>
 		</Container>
 	);

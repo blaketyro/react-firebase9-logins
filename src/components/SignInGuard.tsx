@@ -5,9 +5,22 @@ import { Link } from "react-router-dom";
 import { signOutWithToasts, useUser } from "../accounts";
 import { useMakeToast } from "../toasts";
 
-const AlreadySignedInGuard = ({ children }: { children: ReactNode }) => {
+const SignInGuard = ({ children, requireSignIn }: { children: ReactNode; requireSignIn?: boolean }) => {
 	const user = useUser();
 	const makeToast = useMakeToast();
+
+	if (requireSignIn) {
+		return user ? (
+			children
+		) : (
+			<Stack gap={2}>
+				<div>You must be signed in to use this page.</div>
+				<div>
+					<Link to="/sign-in">Sign in here</Link> or <Link to="/sign-up">create an account here</Link>.
+				</div>
+			</Stack>
+		);
+	}
 
 	return user ? (
 		<Stack gap={2}>
@@ -24,4 +37,4 @@ const AlreadySignedInGuard = ({ children }: { children: ReactNode }) => {
 	);
 };
 
-export default AlreadySignedInGuard;
+export default SignInGuard;

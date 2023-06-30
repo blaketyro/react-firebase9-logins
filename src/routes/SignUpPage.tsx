@@ -3,9 +3,9 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
 import { useNavigate } from "react-router-dom";
-import { signUp, verifyEmail } from "../accounts";
-import AlreadySignedInGuard from "../components/AlreadySignedInGuard";
+import { sendVerificationEmail, signUp } from "../accounts";
 import Box from "../components/Box";
+import SignInGuard from "../components/SignInGuard";
 import { useMakeToast } from "../toasts";
 
 // TODO? x on textboxes?
@@ -20,7 +20,7 @@ const SignUpPage = () => {
 
 	return (
 		<Box>
-			<AlreadySignedInGuard>
+			<SignInGuard>
 				<Form
 					onSubmit={(event) => {
 						event.preventDefault();
@@ -32,7 +32,7 @@ const SignUpPage = () => {
 									setEmail("");
 									setPassword("");
 									setPasswordConfirmation("");
-									verifyEmail();
+									void sendVerificationEmail();
 									makeToast(
 										"Successfully signed up! A verification email has been sent.",
 										"Signed Up",
@@ -105,7 +105,7 @@ const SignUpPage = () => {
 						<Button type="submit">Create Account</Button>
 					</Stack>
 				</Form>
-			</AlreadySignedInGuard>
+			</SignInGuard>
 		</Box>
 	);
 };

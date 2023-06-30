@@ -4,8 +4,8 @@ import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
 import { useNavigate } from "react-router-dom";
 import { signIn } from "../accounts";
-import AlreadySignedInGuard from "../components/AlreadySignedInGuard";
 import Box from "../components/Box";
+import SignInGuard from "../components/SignInGuard";
 import { useMakeToast } from "../toasts";
 
 const SignInPage = () => {
@@ -16,7 +16,7 @@ const SignInPage = () => {
 
 	return (
 		<Box>
-			<AlreadySignedInGuard>
+			<SignInGuard>
 				<Form
 					onSubmit={(event) => {
 						event.preventDefault();
@@ -76,7 +76,7 @@ const SignInPage = () => {
 						<Button type="submit">Sign In</Button>
 					</Stack>
 				</Form>
-			</AlreadySignedInGuard>
+			</SignInGuard>
 		</Box>
 	);
 };
