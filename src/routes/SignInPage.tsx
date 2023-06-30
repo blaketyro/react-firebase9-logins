@@ -3,12 +3,13 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
 import { useNavigate } from "react-router-dom";
-import { signIn } from "../accounts";
+import { signIn, useUser } from "../accounts";
 import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
 import { useMakeToast } from "../toasts";
 
 const SignInPage = () => {
+	const user = useUser();
 	const makeToast = useMakeToast();
 	const navigate = useNavigate();
 	const [email, setEmail] = useState("");
@@ -16,6 +17,16 @@ const SignInPage = () => {
 
 	return (
 		<Box>
+			<h3
+				onClick={() => {
+					if (!user) {
+						setEmail("example@example.com");
+						setPassword("example");
+					}
+				}}
+			>
+				Sign In
+			</h3>
 			<SignInGuard>
 				<Form
 					onSubmit={(event) => {
@@ -49,14 +60,6 @@ const SignInPage = () => {
 					}}
 				>
 					<Stack gap={2}>
-						<h3
-							onClick={() => {
-								setEmail("example@example.com");
-								setPassword("example");
-							}}
-						>
-							Sign In
-						</h3>
 						<Form.Control
 							name="email"
 							type="email"

@@ -4,7 +4,8 @@ import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import Stack from "react-bootstrap/Stack";
 import { Link, Outlet } from "react-router-dom";
-import { signOutWithToasts, useUser } from "../accounts";
+import { signOutHelper } from "../accountHelpers";
+import { useUser } from "../accounts";
 import ToastTestButton from "../components/ToastTestButton";
 import { useMakeToast } from "../toasts";
 
@@ -20,26 +21,34 @@ const Header = () => {
 					<Link to="/" className="nav-link">
 						Home
 					</Link>
-					<Link to="/sign-up" className="nav-link">
-						Sign Up
-					</Link>
 					<Link to="/sign-in" className="nav-link">
 						Sign In
 					</Link>
+					<Link to="/sign-up" className="nav-link">
+						Sign Up
+					</Link>
+					<Link to="/sign-out" className="nav-link">
+						Sign Out
+					</Link>
 					<Link to="/verify-email" className="nav-link">
 						Verify Email
+					</Link>
+					<Link to="/delete-account" className="nav-link">
+						Delete Account
 					</Link>
 				</Stack>
 			</Nav>
 			{user ? (
 				<Stack gap={2} direction="horizontal">
 					<Navbar.Text className="text-info">Signed in as {user.email}</Navbar.Text>
-					<Button variant="secondary" size="sm" onClick={() => signOutWithToasts(makeToast)}>
+					<Button variant="secondary" size="sm" onClick={() => void signOutHelper(makeToast)}>
 						Sign Out
 					</Button>
 				</Stack>
 			) : (
-				<Navbar.Text className="text-secondary">Not signed in</Navbar.Text>
+				<Link to="/sign-in" className="navbar-text text-secondary">
+					Not signed in
+				</Link>
 			)}
 		</Navbar>
 	);

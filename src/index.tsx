@@ -4,10 +4,12 @@ import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { UserProvider } from "./accounts";
 import "./index.css";
+import DeleteAccountPage from "./routes/DeleteAccountPage";
 import ErrorPage from "./routes/ErrorPage";
 import HomePage from "./routes/HomePage";
 import Root from "./routes/Root";
 import SignInPage from "./routes/SignInPage";
+import SignOutPage from "./routes/SignOutPage";
 import SignUpPage from "./routes/SignUpPage";
 import VerifyEmailPage from "./routes/VerifyEmailPage";
 import { ToastProvider } from "./toasts";
@@ -31,8 +33,16 @@ const router = createBrowserRouter([
 				element: <SignUpPage />,
 			},
 			{
+				path: "sign-out",
+				element: <SignOutPage />,
+			},
+			{
 				path: "verify-email",
 				element: <VerifyEmailPage />,
+			},
+			{
+				path: "delete-account",
+				element: <DeleteAccountPage />,
 			},
 		],
 	},

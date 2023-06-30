@@ -1,6 +1,7 @@
 // My API for the user account systems (dependency inverted so the React stuff doesn't need to know about Firebase).
 
 // firebase/auth docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth
+// User docs: https://firebase.google.com/docs/reference/js/v8/firebase.User
 // Edit email templates: https://console.firebase.google.com/u/0/project/react-firebase9-logins/authentication/emails
 
 // TODO? Email enumeration prevention? https://firebase.google.com/docs/auth/web/password-auth#enumeration-protection
@@ -15,7 +16,6 @@ import {
 } from "firebase/auth";
 import { ReactNode, createContext, useContext, useEffect, useState } from "react";
 import { auth, publicSiteUrl } from "./firebase-config";
-import { useMakeToast } from "./toasts";
 
 const DEBUG = true;
 const debugMsg = (...messages: unknown[]) => {
@@ -107,7 +107,7 @@ export const signIn = async (email: string, password: string) => {
 
 // Sign out docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#signout
 export const SignOutError = [] as const;
-export type SignOutError = WithUnspecifiedError<typeof SignInError>;
+export type SignOutError = WithUnspecifiedError<typeof SignOutError>;
 export const signOut = async () => {
 	// Sign out shouldn't normally throw errors, but follow the same array/try/catch pattern as sign up/in to be safe.
 	// There may be unexpected errors since the docs are not exhaustive and this is more consistent and future-proof.
@@ -119,22 +119,10 @@ export const signOut = async () => {
 		return extractErrorCode(error, SignOutError);
 	}
 };
-export const signOutWithToasts = (makeToast: ReturnType<typeof useMakeToast>) => {
-	// This function doesn't strictly belong in this file but not sure where else to put it.
-	void (async () => {
-		switch (await signOut()) {
-			case undefined:
-				makeToast("Successfully signed out", "Signed Out");
-				break;
-			case "misc/unspecified-error":
-				makeToast("Unspecified error signing out", "Sign Out Error", "danger");
-		}
-	})();
-};
 
 // Verify docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#sendemailverification
 export const SendVerificationEmailError = ["auth/too-many-requests", "misc/no-user", "misc/already-verified"] as const;
-export type SendVerificationEmailError = WithUnspecifiedError<typeof SignInError>;
+export type SendVerificationEmailError = WithUnspecifiedError<typeof SendVerificationEmailError>;
 export const sendVerificationEmail = async (redirectUrl = publicSiteUrl) => {
 	try {
 		if (!auth.currentUser) {
@@ -154,4 +142,19 @@ export const sendVerificationEmail = async (redirectUrl = publicSiteUrl) => {
 	// https://console.firebase.google.com/u/0/project/react-firebase9-logins/authentication/emails
 	// Could customize more following https://blog.logrocket.com/send-custom-email-templates-firebase-react-express
 	// which uses SendGrid which allows 100 emails per day free: https://sendgrid.com/pricing/
+};
+
+// Delete docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#delete
+export const DeleteUserError = ["misc/no-user", "auth/requires-recent-login"] as const;
+export type DeleteUserError = WithUnspecifiedError<typeof DeleteUserError>;
+export const deleteUser = async () => {
+	try {
+		if (!auth.currentUser) {
+			throw { code: "misc/no-user" };
+		}
+		await auth.currentUser.delete(); // Using deleteUser imported from "firebase/auth" also works.
+	} catch (error) {
+		debugMsg("Error deleting user:", error);
+		return extractErrorCode(error, DeleteUserError);
+	}
 };

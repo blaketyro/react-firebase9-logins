@@ -3,7 +3,7 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
 import { useNavigate } from "react-router-dom";
-import { sendVerificationEmail, signUp } from "../accounts";
+import { signUp, useUser } from "../accounts";
 import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
 import { useMakeToast } from "../toasts";
@@ -12,6 +12,7 @@ import { useMakeToast } from "../toasts";
 // TODO? reveal eye button on password box?
 
 const SignUpPage = () => {
+	const user = useUser();
 	const makeToast = useMakeToast();
 	const navigate = useNavigate();
 	const [email, setEmail] = useState("");
@@ -20,6 +21,17 @@ const SignUpPage = () => {
 
 	return (
 		<Box>
+			<h3
+				onClick={() => {
+					if (!user) {
+						setEmail("example@example.com");
+						setPassword("example");
+						setPasswordConfirmation("example");
+					}
+				}}
+			>
+				Sign Up
+			</h3>
 			<SignInGuard>
 				<Form
 					onSubmit={(event) => {
@@ -32,13 +44,7 @@ const SignUpPage = () => {
 									setEmail("");
 									setPassword("");
 									setPasswordConfirmation("");
-									void sendVerificationEmail();
-									makeToast(
-										"Successfully signed up! A verification email has been sent.",
-										"Signed Up",
-										"success",
-										4000
-									);
+									makeToast("Successfully signed up!", "Signed Up", "success");
 									navigate("/");
 									break;
 								case "auth/email-already-in-use":
@@ -67,15 +73,6 @@ const SignUpPage = () => {
 					}}
 				>
 					<Stack gap={2}>
-						<h3
-							onClick={() => {
-								setEmail("example@example.com");
-								setPassword("example");
-								setPasswordConfirmation("example");
-							}}
-						>
-							Sign Up
-						</h3>
 						<Form.Control
 							name="email"
 							type="email"
