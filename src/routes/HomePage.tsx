@@ -90,7 +90,7 @@ const HomePage = () => {
 							/>
 							<Col>
 								<Button
-									onClick={() => void deleteUserHelper(makeToast)}
+									onClick={() => void deleteUserHelper(makeToast, true)}
 									size="sm"
 									variant="secondary"
 									className="mt-3"

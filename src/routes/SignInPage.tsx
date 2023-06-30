@@ -37,7 +37,7 @@ const SignInPage = () => {
 							switch (await signIn(email, password)) {
 								case undefined:
 									setEmail("");
-									makeToast("Successfully signed in!", "Signed In", "success");
+									makeToast("Successfully signed in", "Signed In", "success");
 									navigate("/");
 									break;
 								case "auth/invalid-email":

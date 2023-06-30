@@ -3,7 +3,7 @@ import Toast from "react-bootstrap/Toast";
 import { createPortal } from "react-dom";
 
 export const defaultToastPortalId = "toast-portal";
-export const defaultToastTimeoutMs = 2000;
+export const defaultToastTimeoutMs = 2500;
 export const defaultToastIntervalMs = 10;
 
 type ToastData = { ToastComponent: ToastComponent; timeoutMs: number; currentMs: number };

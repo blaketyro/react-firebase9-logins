@@ -1,4 +1,4 @@
-import { deleteUser, signOut } from "./accounts";
+import { deleteUser, reauthenticateUser, signOut } from "./accounts";
 import { useMakeToast } from "./toasts";
 
 type MakeToast = ReturnType<typeof useMakeToast>;
@@ -15,10 +15,17 @@ export const signOutHelper = async (makeToast: MakeToast) => {
 	}
 };
 
-export const deleteUserHelper = async (makeToast: MakeToast) => {
+// export const reauthenticateUserHelper = async (makeToast: MakeToast) => {};
+
+export const deleteUserHelper = async (makeToast: MakeToast, alwaysReauthenticate?: boolean) => {
+	if (alwaysReauthenticate) {
+		makeToast("Re-auth required (TODO)");
+		await reauthenticateUser(window.prompt("pw") ?? "");
+	}
+
 	switch (await deleteUser()) {
 		case undefined:
-			makeToast("Successfully deleted account!", "Account Deleted", "success");
+			makeToast("Successfully deleted account", "Account Deleted", "success");
 			break;
 		case "auth/requires-recent-login":
 			makeToast("Re-auth required (TODO)");

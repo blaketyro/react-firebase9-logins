@@ -7,10 +7,12 @@
 // TODO? Email enumeration prevention? https://firebase.google.com/docs/auth/web/password-auth#enumeration-protection
 
 import {
+	EmailAuthProvider,
 	User as FirebaseUser,
 	createUserWithEmailAndPassword,
 	signOut as firebaseSignOut,
 	onAuthStateChanged,
+	reauthenticateWithCredential,
 	sendEmailVerification,
 	signInWithEmailAndPassword,
 } from "firebase/auth";
@@ -33,7 +35,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 	useEffect(
 		() =>
 			onAuthStateChanged(auth, (currentUser) => {
-				debugMsg("User is now", currentUser?.email);
+				debugMsg("User is now", currentUser?.email ?? null);
 				setUser(currentUser);
 			}),
 		[]
@@ -79,8 +81,8 @@ export const signUp = async (email: string, password: string, passwordConfirmati
 		if (password !== passwordConfirmation) {
 			throw { code: "misc/unconfirmed-password" }; // Note that passwords of some or all whitespace are allowed.
 		}
-		const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-		debugMsg("Successfully signed up", userCredential.user.email);
+		await createUserWithEmailAndPassword(auth, email, password);
+		debugMsg("Successfully signed up as", auth.currentUser?.email);
 	} catch (error) {
 		debugMsg("Error signing up:", error);
 		return extractErrorCode(error, SignUpError);
@@ -97,8 +99,8 @@ export const SignInError = [
 export type SignInError = WithUnspecifiedError<typeof SignInError>;
 export const signIn = async (email: string, password: string) => {
 	try {
-		const userCredential = await signInWithEmailAndPassword(auth, email, password);
-		debugMsg("Successfully signed in", userCredential.user.email);
+		await signInWithEmailAndPassword(auth, email, password);
+		debugMsg("Successfully signed in as", auth.currentUser?.email);
 	} catch (error) {
 		debugMsg("Error signing in:", error);
 		return extractErrorCode(error, SignInError);
@@ -149,12 +151,38 @@ export const DeleteUserError = ["misc/no-user", "auth/requires-recent-login"] as
 export type DeleteUserError = WithUnspecifiedError<typeof DeleteUserError>;
 export const deleteUser = async () => {
 	try {
+		const toDelete = auth.currentUser?.email;
 		if (!auth.currentUser) {
 			throw { code: "misc/no-user" };
 		}
 		await auth.currentUser.delete(); // Using deleteUser imported from "firebase/auth" also works.
+		debugMsg("Successfully deleted", toDelete);
 	} catch (error) {
 		debugMsg("Error deleting user:", error);
 		return extractErrorCode(error, DeleteUserError);
+	}
+};
+
+export const ReauthenticateUserError = [
+	"auth/missing-password",
+	"auth/wrong-password",
+	"misc/no-user",
+	"misc/no-email",
+];
+export type ReauthenticateUserError = WithUnspecifiedError<typeof ReauthenticateUserError>;
+export const reauthenticateUser = async (password: string) => {
+	try {
+		if (!auth.currentUser) {
+			throw { code: "misc/no-user" };
+		}
+		if (!auth.currentUser.email) {
+			throw { code: "misc/no-email" };
+		}
+		const authCredential = EmailAuthProvider.credential(auth.currentUser.email, password);
+		await reauthenticateWithCredential(auth.currentUser, authCredential);
+		debugMsg("Successfully reauthenticated", auth.currentUser.email);
+	} catch (error) {
+		debugMsg("Error reauthenticating:", error);
+		return extractErrorCode(error, ReauthenticateUserError);
 	}
 };
