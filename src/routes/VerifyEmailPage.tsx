@@ -4,7 +4,7 @@ import { sendVerificationEmail, useUser } from "../accounts";
 import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
 import { publicSiteUrl } from "../firebase-config";
-import { useMakeToast } from "../toasts";
+import { useMakeToast } from "../toast";
 
 // TODO? Automatically notice when email has been verified and update the page?
 

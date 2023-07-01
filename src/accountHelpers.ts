@@ -1,5 +1,5 @@
 import { deleteUser, reauthenticateUser, signOut } from "./accounts";
-import { useMakeToast } from "./toasts";
+import { useMakeToast } from "./toast";
 
 type MakeToast = ReturnType<typeof useMakeToast>;
 

@@ -6,8 +6,9 @@ import Stack from "react-bootstrap/Stack";
 import { Link, Outlet } from "react-router-dom";
 import { signOutHelper } from "../accountHelpers";
 import { useUser } from "../accounts";
+import ModalTestButton from "../components/ModalTestButton";
 import ToastTestButton from "../components/ToastTestButton";
-import { useMakeToast } from "../toasts";
+import { useMakeToast } from "../toast";
 
 const Header = () => {
 	const user = useUser();
@@ -63,6 +64,7 @@ const Footer = () => {
 				<ToastTestButton variant="primary" timeoutMs={5000} />
 				<ToastTestButton variant="danger" timeoutMs={10000} />
 				<ToastTestButton variant="secondary" timeoutMs={30000} />
+				<ModalTestButton />
 			</Stack>
 		</Stack>
 	);

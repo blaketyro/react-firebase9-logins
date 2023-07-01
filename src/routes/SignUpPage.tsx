@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { signUp, useUser } from "../accounts";
 import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
-import { useMakeToast } from "../toasts";
+import { useMakeToast } from "../toast";
 
 // TODO? x on textboxes?
 // TODO? reveal eye button on password box?

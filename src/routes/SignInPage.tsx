@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { signIn, useUser } from "../accounts";
 import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
-import { useMakeToast } from "../toasts";
+import { useMakeToast } from "../toast";
 
 const SignInPage = () => {
 	const user = useUser();

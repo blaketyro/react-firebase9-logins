@@ -1,5 +1,5 @@
 import Button from "react-bootstrap/Button";
-import { BootstrapVariant, useMakeToast } from "../toasts";
+import { BootstrapVariant, useMakeToast } from "../toast";
 
 const ToastTestButton = ({ variant, timeoutMs }: { variant: BootstrapVariant; timeoutMs: number }) => {
 	const makeToast = useMakeToast();

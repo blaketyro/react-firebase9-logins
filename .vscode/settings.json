@@ -4,5 +4,8 @@
 		"**/.firebase": true,
 		"**/build": false,
 		"yarn.lock": true
+	},
+	"files.associations": {
+		"*.css": "css"
 	}
 }

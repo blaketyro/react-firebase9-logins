@@ -3,7 +3,7 @@ import Button from "react-bootstrap/Button";
 import { Link } from "react-router-dom";
 import { signOutHelper } from "../accountHelpers";
 import { useUser } from "../accounts";
-import { useMakeToast } from "../toasts";
+import { useMakeToast } from "../toast";
 
 const SignInGuard = ({ children, requireSignIn }: { children: ReactNode; requireSignIn?: boolean }) => {
 	const user = useUser();

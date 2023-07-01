@@ -61,8 +61,8 @@ export const ToastProvider = ({
 	children: ReactNode;
 	toastPortalId?: string;
 }) => {
-	const toastState = useState<ReadonlyMap<number, ToastData>>(new Map());
-	const toastValue = useMemo(() => ({ toasts: toastState[0], setToasts: toastState[1] }), [toastState]);
+	const [toasts, setToasts] = useState<ReadonlyMap<number, ToastData>>(new Map());
+	const toastValue = useMemo(() => ({ toasts, setToasts }), [toasts, setToasts]);
 	return (
 		<ToastContext.Provider value={toastValue}>
 			{children}

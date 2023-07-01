@@ -4,6 +4,7 @@ import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { UserProvider } from "./accounts";
 import "./index.css";
+import { ModalProvider } from "./modal";
 import DeleteAccountPage from "./routes/DeleteAccountPage";
 import ErrorPage from "./routes/ErrorPage";
 import HomePage from "./routes/HomePage";
@@ -12,7 +13,7 @@ import SignInPage from "./routes/SignInPage";
 import SignOutPage from "./routes/SignOutPage";
 import SignUpPage from "./routes/SignUpPage";
 import VerifyEmailPage from "./routes/VerifyEmailPage";
-import { ToastProvider } from "./toasts";
+import { ToastProvider } from "./toast";
 
 const router = createBrowserRouter([
 	{
@@ -52,9 +53,11 @@ const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement)
 root.render(
 	<StrictMode>
 		<ToastProvider>
-			<UserProvider>
-				<RouterProvider router={router} />
-			</UserProvider>
+			<ModalProvider>
+				<UserProvider>
+					<RouterProvider router={router} />
+				</UserProvider>
+			</ModalProvider>
 		</ToastProvider>
 	</StrictMode>
 );

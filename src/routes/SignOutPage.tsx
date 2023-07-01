@@ -2,7 +2,7 @@ import Button from "react-bootstrap/Button";
 import { signOutHelper } from "../accountHelpers";
 import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
-import { useMakeToast } from "../toasts";
+import { useMakeToast } from "../toast";
 
 const SignOutPage = () => {
 	const makeToast = useMakeToast();

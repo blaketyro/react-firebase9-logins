@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { deleteUserHelper } from "../accountHelpers";
 import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
-import { useMakeToast } from "../toasts";
+import { useMakeToast } from "../toast";
 
 const DeleteAccountPage = () => {
 	const makeToast = useMakeToast();

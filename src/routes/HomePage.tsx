@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import { deleteUserHelper } from "../accountHelpers";
 import { useUser } from "../accounts";
 import Box from "../components/Box";
-import { useMakeToast } from "../toasts";
+import { useMakeToast } from "../toast";
 
 const UserTidbit = ({ title, value, horizontal }: { title: string; value: ReactNode; horizontal?: boolean }) => {
 	return (
