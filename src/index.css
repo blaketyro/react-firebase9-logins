@@ -24,62 +24,57 @@ h3 {
 }
 
 #root {
-	min-height: 100vh;
+	height: 100vh;
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
 }
 
-#toast-portal {
+#toast-portal,
+#modal-portal {
 	width: 100%;
-	max-width: 100%;
 	height: 100%;
-	max-height: 100%;
 	position: fixed;
+	left: 0;
 	top: 0;
-	left: 50%;
-	transform: translateX(-50%);
+	pointer-events: none;
+	overflow: hidden;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	pointer-events: none;
-	overflow: hidden;
+}
+#toast-portal {
 	padding: 0.5rem;
 	gap: 0.5rem;
 }
-
 #modal-portal {
-	width: 100%;
-	max-width: 100%;
-	height: 100%;
-	max-height: 100%;
-	position: fixed;
-	top: 0;
-	left: 0;
-	pointer-events: none;
-	overflow: hidden;
+	align-items: center;
 }
 
 .fullscreen-modal {
 	width: 100%;
-	max-width: 100%;
 	height: 100%;
-	max-height: 100%;
 	background-color: #0007;
 	display: flex;
-	flex-direction: column;
 	justify-content: center;
 	align-items: center;
 	pointer-events: auto;
 }
 
 .box {
-	max-width: min(500px, 100%);
+	max-width: 500px;
 }
 .wide-box {
-	max-width: min(800px, 100%);
+	max-width: 800px;
 }
 .box,
 .wide-box {
 	background-color: #445;
+}
+.modal-box {
+	width: 100%;
+	max-width: 600px;
+	height: fit-content;
+	align-self: center; /* Not sure why this is needed.. */
+	margin: 2rem;
 }

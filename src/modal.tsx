@@ -1,5 +1,8 @@
 import { Dispatch, ReactNode, SetStateAction, createContext, useCallback, useContext, useMemo, useState } from "react";
+import CloseButton from "react-bootstrap/CloseButton";
+import Stack from "react-bootstrap/Stack";
 import { createPortal } from "react-dom";
+import Box from "./components/Box";
 
 export const defaultModalPortalId = "modal-portal";
 
@@ -85,6 +88,28 @@ export const ModalProvider = ({
 
 //#region Bootstrap Specific Modal Code:
 
-// TODO!!! https://react-bootstrap.netlify.app/docs/components/modal/
+export const useOpenModal = () => {
+	// Not using react-bootstrap specific modal since it doesn't style anything or have an onClose to hook into..?
+	const openFullscreenModal = useOpenFullscreenModal();
+	return (title: string, body?: ReactNode) => {
+		openFullscreenModal(({ close }) => {
+			return (
+				<Box modal>
+					<Stack gap={2}>
+						<Stack
+							gap={2}
+							className="d-flex justify-content-between align-items-center"
+							direction="horizontal"
+						>
+							<h2>{title}</h2>
+							<CloseButton onClick={close} />
+						</Stack>
+						{body}
+					</Stack>
+				</Box>
+			);
+		});
+	};
+};
 
 //#endregion

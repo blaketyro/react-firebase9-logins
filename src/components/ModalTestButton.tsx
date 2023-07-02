@@ -1,18 +1,24 @@
 import Button from "react-bootstrap/Button";
-import { useOpenFullscreenModal } from "../modal";
+import { useOpenModal } from "../modal";
 
 const ModalTestButton = () => {
-	const openModal = useOpenFullscreenModal();
+	const openModal = useOpenModal();
 	return (
 		<Button
 			size="sm"
 			style={{ minWidth: "9rem" }}
 			variant="light"
 			onClick={() => {
-				openModal(({ close }) => {
-					// TODO Use Bootstrap
-					return <button onClick={close}>MODAL TEST {Math.random()}</button>;
-				});
+				openModal(
+					"Test Modal",
+					<p>
+						This...
+						<br />
+						<br />
+						<br />
+						...is a modal!
+					</p>
+				);
 			}}
 		>
 			Modal Test
