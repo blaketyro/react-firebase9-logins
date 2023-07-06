@@ -4,10 +4,10 @@ import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Stack from "react-bootstrap/Stack";
 import { Link } from "react-router-dom";
-import { deleteUserHelper } from "../accountHelpers";
+import { reauthenticateUserHelper } from "../accountHelpers";
 import { useUser } from "../accounts";
 import Box from "../components/Box";
-import { useMakeToast } from "../toast";
+import { useMakeModal } from "../modal";
 
 const UserTidbit = ({ title, value, horizontal }: { title: string; value: ReactNode; horizontal?: boolean }) => {
 	return (
@@ -22,7 +22,7 @@ const UserTidbit = ({ title, value, horizontal }: { title: string; value: ReactN
 
 const HomePage = () => {
 	const user = useUser();
-	const makeToast = useMakeToast();
+	const makeModal = useMakeModal();
 	const photoURL = user?.photoURL; // ?? "https://upload.wikimedia.org/wikipedia/commons/b/bc/Unknown_person.jpg";
 
 	return (
@@ -88,14 +88,23 @@ const HomePage = () => {
 									)
 								}
 							/>
-							<Col>
+							<Col className="gap-2 d-flex align-items-start">
 								<Button
-									onClick={() => void deleteUserHelper(makeToast, true)}
+									// TODO!!! make this button work without requiring reauth, show toast if not
+									// onClick={() => void deleteUserHelper(makeToast, openModal)}
 									size="sm"
 									variant="secondary"
 									className="mt-3"
 								>
 									Delete Account
+								</Button>
+								<Button
+									onClick={() => void reauthenticateUserHelper(makeModal)}
+									size="sm"
+									variant="secondary"
+									className="mt-3"
+								>
+									Reauth Account
 								</Button>
 							</Col>
 						</Row>

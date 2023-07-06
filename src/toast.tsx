@@ -185,5 +185,6 @@ export const useMakeToast = () => {
 		);
 	};
 };
+export type MakeToast = ReturnType<typeof useMakeToast>;
 
 //#endregion

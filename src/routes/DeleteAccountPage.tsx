@@ -1,12 +1,9 @@
 import Button from "react-bootstrap/Button";
 import { useNavigate } from "react-router-dom";
-import { deleteUserHelper } from "../accountHelpers";
 import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
-import { useMakeToast } from "../toast";
 
 const DeleteAccountPage = () => {
-	const makeToast = useMakeToast();
 	const navigate = useNavigate();
 
 	return (
@@ -20,8 +17,9 @@ const DeleteAccountPage = () => {
 				<Button
 					variant="danger"
 					onClick={() => {
-						void (async () => {
-							await deleteUserHelper(makeToast);
+						void (() => {
+							// TODO!!!
+							// await deleteUserHelper(makeToast, openModal, true);
 							navigate("/");
 						})();
 					}}

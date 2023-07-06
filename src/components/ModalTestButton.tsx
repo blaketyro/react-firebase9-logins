@@ -1,16 +1,15 @@
 import Button from "react-bootstrap/Button";
-import { useOpenModal } from "../modal";
+import { useMakeModal } from "../modal";
 
 const ModalTestButton = () => {
-	const openModal = useOpenModal();
+	const makeModal = useMakeModal();
 	return (
 		<Button
 			size="sm"
 			style={{ minWidth: "9rem" }}
 			variant="light"
 			onClick={() => {
-				openModal(
-					"Test Modal",
+				makeModal("Test Modal", () => (
 					<p>
 						This...
 						<br />
@@ -18,7 +17,7 @@ const ModalTestButton = () => {
 						<br />
 						...is a modal!
 					</p>
-				);
+				));
 			}}
 		>
 			Modal Test

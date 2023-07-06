@@ -168,7 +168,7 @@ export const ReauthenticateUserError = [
 	"auth/wrong-password",
 	"misc/no-user",
 	"misc/no-email",
-];
+] as const;
 export type ReauthenticateUserError = WithUnspecifiedError<typeof ReauthenticateUserError>;
 export const reauthenticateUser = async (password: string) => {
 	try {
