@@ -11,7 +11,7 @@ const SignOutPage = () => {
 	return (
 		<Box>
 			<h3>Sign Out</h3>
-			<SignInGuard requireSignIn>
+			<SignInGuard mode="require-signed-in">
 				<p>
 					You are signed in as <span className="text-info">{user?.email}</span>.
 				</p>

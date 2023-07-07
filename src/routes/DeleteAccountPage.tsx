@@ -14,7 +14,7 @@ const DeleteAccountPage = () => {
 	return (
 		<Box>
 			<h3>Delete Account</h3>
-			<SignInGuard requireSignIn>
+			<SignInGuard mode="require-signed-in">
 				<p>
 					Click the button below to delete your account. You will be required to reenter your password. You
 					can create an account again later with the same email address.

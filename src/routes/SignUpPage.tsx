@@ -33,7 +33,7 @@ const SignUpPage = () => {
 			>
 				Sign Up
 			</h3>
-			<SignInGuard>
+			<SignInGuard mode="require-signed-out">
 				<Form
 					onSubmit={(event) => {
 						event.preventDefault();

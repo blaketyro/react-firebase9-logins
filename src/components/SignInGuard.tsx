@@ -5,11 +5,11 @@ import { signOutHelper } from "../accountHelpers";
 import { useUser } from "../accounts";
 import { useMakeToast } from "../toast";
 
-const SignInGuard = ({ children, requireSignIn }: { children: ReactNode; requireSignIn?: boolean }) => {
+const SignInGuard = ({ children, mode }: { children: ReactNode; mode: "require-signed-in" | "require-signed-out" }) => {
 	const user = useUser();
 	const makeToast = useMakeToast();
 
-	if (requireSignIn) {
+	if (mode === "require-signed-in") {
 		return user ? (
 			children
 		) : (
@@ -20,23 +20,23 @@ const SignInGuard = ({ children, requireSignIn }: { children: ReactNode; require
 				</p>
 			</>
 		);
+	} else {
+		return user ? (
+			<>
+				<p className="mb-1 ">
+					You are already signed in as <span className="text-info">{user.email}</span>.
+				</p>
+				<p className="mt-1">
+					Return to the <Link to="/">homepage</Link> or sign out to proceed.
+				</p>
+				<Button variant="secondary" size="sm" onClick={() => void signOutHelper(makeToast)}>
+					Sign Out
+				</Button>
+			</>
+		) : (
+			children
+		);
 	}
-
-	return user ? (
-		<>
-			<p className="mb-1 ">
-				You are already signed in as <span className="text-info">{user.email}</span>.
-			</p>
-			<p className="mt-1">
-				Return to the <Link to="/">homepage</Link> or sign out to proceed.
-			</p>
-			<Button variant="secondary" size="sm" onClick={() => void signOutHelper(makeToast)}>
-				Sign Out
-			</Button>
-		</>
-	) : (
-		children
-	);
 };
 
 export default SignInGuard;

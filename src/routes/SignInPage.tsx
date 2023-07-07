@@ -28,7 +28,7 @@ const SignInPage = () => {
 			>
 				Sign In
 			</h3>
-			<SignInGuard>
+			<SignInGuard mode="require-signed-out">
 				<Form
 					onSubmit={(event) => {
 						event.preventDefault();

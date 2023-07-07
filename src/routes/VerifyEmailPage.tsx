@@ -16,7 +16,7 @@ const VerifyEmailPage = () => {
 	return (
 		<Box>
 			<h3>Verify Email</h3>
-			<SignInGuard requireSignIn>
+			<SignInGuard mode="require-signed-in">
 				{user?.emailVerified ? (
 					<>
 						<p>
