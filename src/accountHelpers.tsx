@@ -33,7 +33,6 @@ const ReauthenticationModal: ModalComponent = ({ close }) => {
 						setPassword(""); // Always clear password.
 						switch (await reauthenticateUser(password)) {
 							case undefined:
-								makeToast("Successfully reauthenticated", "Reauthenticated", "success");
 								close("success");
 								break;
 							case "auth/missing-password":
@@ -70,39 +69,42 @@ const ReauthenticationModal: ModalComponent = ({ close }) => {
 	);
 };
 
-// Async function that returns bool of whether reauthentication was successful or not
+// Async function that returns bool of whether reauthentication was successful or not.
 export const reauthenticateUserHelper = async (makeModal: MakeModal) => {
 	const result = await awaitModal(makeModal, "Reauthentication Required", ReauthenticationModal);
-	console.log("MODAL RESULT", result);
-	// const makeModal = useMakeModal()
-
-	// return new Promise((resolve, reject) => {
-	// 	makeModal("Reauthentication ")
-
-	// })
-
-	// const result = await openModal("Title", (close) => <ReauthModal close={close} />)
-
-	// openModal("Reauthentication Required", <ReauthenticationModal />);
+	return result === "success";
 };
 
-export const deleteUserHelper = async (makeToast: MakeToast, alwaysReauthenticate?: boolean) => {
+export const deleteUserHelper = async (makeToast: MakeToast, makeModal: MakeModal, alwaysReauthenticate?: boolean) => {
 	if (alwaysReauthenticate) {
-		// reauthenticateUserHelper(makeToast, openModal);
+		if (!(await reauthenticateUserHelper(makeModal))) {
+			return false;
+		}
 	}
 
-	return;
-
+	const makeSuccessToast = () => makeToast("Successfully deleted account", "Account Deleted", "success");
+	const makeErrorToast = (message: string) => makeToast(message, "Account Deletion Error", "danger");
 	switch (await deleteUser()) {
 		case undefined:
-			makeToast("Successfully deleted account", "Account Deleted", "success");
-			break;
+			makeSuccessToast();
+			return true;
 		case "auth/requires-recent-login":
-			makeToast("Re-auth required (TODO)");
-			// TODO!!! implement re-auth modal or the like https://firebase.google.com/docs/reference/js/v8/firebase.User#reauthenticatewithcredential
+			if (await reauthenticateUserHelper(makeModal)) {
+				// Try deleting again after successful reauth.
+				switch (await deleteUser()) {
+					case undefined:
+						makeSuccessToast();
+						return true;
+					default:
+						makeErrorToast("Reauthentication unexpectedly failed"); // Should never happen.
+				}
+			} else {
+				makeErrorToast("Reauthentication not provided");
+			}
 			break;
 		case "misc/no-user":
 		case "misc/unspecified-error":
-			makeToast("Unspecified error deleting account", "Account Deletion Error", "danger");
+			makeErrorToast("Unspecified error deleting account");
 	}
+	return false;
 };

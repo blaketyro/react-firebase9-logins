@@ -1,26 +1,31 @@
 import Button from "react-bootstrap/Button";
 import { useNavigate } from "react-router-dom";
+import { deleteUserHelper } from "../accountHelpers";
 import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
+import { useMakeModal } from "../modal";
+import { useMakeToast } from "../toast";
 
 const DeleteAccountPage = () => {
 	const navigate = useNavigate();
+	const makeToast = useMakeToast();
+	const makeModal = useMakeModal();
 
 	return (
 		<Box>
 			<h3>Delete Account</h3>
 			<SignInGuard requireSignIn>
 				<p>
-					Click the button below to permanently delete your account. You can re-create an account with the
-					same email address later.
+					Click the button below to delete your account. You will be required to reenter your password. You
+					can create an account again later with the same email address.
 				</p>
 				<Button
 					variant="danger"
 					onClick={() => {
-						void (() => {
-							// TODO!!!
-							// await deleteUserHelper(makeToast, openModal, true);
-							navigate("/");
+						void (async () => {
+							if (await deleteUserHelper(makeToast, makeModal, true)) {
+								navigate("/");
+							}
 						})();
 					}}
 				>
