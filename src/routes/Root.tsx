@@ -18,7 +18,7 @@ const Header = () => {
 		<Navbar className="justify-content-between px-3 flex-wrap border-bottom">
 			<Nav className="flex-wrap">
 				<Navbar.Brand href="/">React Firebase 9 Logins</Navbar.Brand>
-				<Stack direction="horizontal" className="flex-wrap">
+				<Stack direction="horizontal" className="flex-wrap justify-content-around">
 					<Link to="/" className="nav-link">
 						Home
 					</Link>
@@ -34,23 +34,37 @@ const Header = () => {
 					<Link to="/verify-email" className="nav-link">
 						Verify Email
 					</Link>
+					<Link to="/change-email" className="nav-link">
+						Change Email
+						{/* // TODO!!!  */}
+					</Link>
+					<Link to="/change-password" className="nav-link">
+						Change Password
+						{/* // TODO!!!  */}
+					</Link>
+					<Link to="/forgot-password" className="nav-link">
+						Forgot Password
+						{/* // TODO!!!  */}
+					</Link>
 					<Link to="/delete-account" className="nav-link">
 						Delete Account
 					</Link>
 				</Stack>
 			</Nav>
-			{user ? (
-				<Stack gap={2} direction="horizontal">
-					<Navbar.Text className="text-info">Signed in as {user.email}</Navbar.Text>
-					<Button variant="secondary" size="sm" onClick={() => void signOutHelper(makeToast)}>
-						Sign Out
-					</Button>
-				</Stack>
-			) : (
-				<Link to="/sign-in" className="navbar-text text-secondary">
-					Not signed in
-				</Link>
-			)}
+			<Stack gap={2} direction="horizontal" className="flex-grow-1 justify-content-end">
+				{user ? (
+					<>
+						<Navbar.Text className="text-info">Signed in as {user.email}</Navbar.Text>
+						<Button variant="secondary" size="sm" onClick={() => void signOutHelper(makeToast)}>
+							Sign Out
+						</Button>
+					</>
+				) : (
+					<Link to="/sign-in" className="navbar-text text-secondary">
+						Not signed in
+					</Link>
+				)}
+			</Stack>
 		</Navbar>
 	);
 };

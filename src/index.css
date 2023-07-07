@@ -79,3 +79,7 @@ h3 {
 	align-self: center; /* Not sure why this is needed.. */
 	margin: 2rem;
 }
+
+.nav-link {
+	letter-spacing: -0.05ch;
+}
