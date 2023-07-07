@@ -6,6 +6,9 @@ import { deleteUser, reauthenticateUser, signOut } from "./accounts";
 import { MakeModal, ModalComponent, awaitModal } from "./modal";
 import { MakeToast, useMakeToast } from "./toast";
 
+export const exampleEmail = "example@example.com"; // https://stackoverflow.com/q/1368163
+export const examplePassword = "example";
+
 // Keep these async since sometimes it's useful to await for them to finish to do a further action.
 
 export const signOutHelper = async (makeToast: MakeToast) => {

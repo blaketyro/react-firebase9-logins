@@ -3,6 +3,7 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
 import { useNavigate } from "react-router-dom";
+import { exampleEmail, examplePassword } from "../accountHelpers";
 import { signIn, useUser } from "../accounts";
 import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
@@ -20,9 +21,8 @@ const SignInPage = () => {
 			<h3
 				onClick={() => {
 					if (!user) {
-						// TODO!!! use constants for these and prevent sending email to example
-						setEmail("example@example.com");
-						setPassword("example");
+						setEmail(exampleEmail);
+						setPassword(examplePassword);
 					}
 				}}
 			>

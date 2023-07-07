@@ -3,6 +3,7 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
 import { useNavigate } from "react-router-dom";
+import { exampleEmail, examplePassword } from "../accountHelpers";
 import { signUp, useUser } from "../accounts";
 import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
@@ -24,9 +25,9 @@ const SignUpPage = () => {
 			<h3
 				onClick={() => {
 					if (!user) {
-						setEmail("example@example.com");
-						setPassword("example");
-						setPasswordConfirmation("example");
+						setEmail(exampleEmail);
+						setPassword(examplePassword);
+						setPasswordConfirmation(examplePassword);
 					}
 				}}
 			>

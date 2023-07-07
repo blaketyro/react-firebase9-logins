@@ -1,5 +1,6 @@
 import Button from "react-bootstrap/Button";
 import { Link } from "react-router-dom";
+import { exampleEmail } from "../accountHelpers";
 import { sendVerificationEmail, useUser } from "../accounts";
 import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
@@ -35,6 +36,11 @@ const VerifyEmailPage = () => {
 							variant="secondary"
 							onClick={() => {
 								void (async () => {
+									if (user?.email === exampleEmail) {
+										makeToast("Not sending email to example email address", "Didn't Send Email");
+										return;
+									}
+
 									const makeErrorToast = (message: string) =>
 										makeToast(message, "Email Error", "danger");
 									switch (await sendVerificationEmail(publicSiteUrl + "verify-email")) {
