@@ -5,8 +5,11 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { UserProvider } from "./accounts";
 import "./index.css";
 import { ModalProvider } from "./modal";
+import ChangeEmailPage from "./routes/ChangeEmailPage";
+import ChangePasswordPage from "./routes/ChangePasswordPage";
 import DeleteAccountPage from "./routes/DeleteAccountPage";
 import ErrorPage from "./routes/ErrorPage";
+import ForgotPasswordPage from "./routes/ForgotPasswordPage";
 import HomePage from "./routes/HomePage";
 import Root from "./routes/Root";
 import SignInPage from "./routes/SignInPage";
@@ -40,6 +43,18 @@ const router = createBrowserRouter([
 			{
 				path: "verify-email",
 				element: <VerifyEmailPage />,
+			},
+			{
+				path: "change-email",
+				element: <ChangeEmailPage />,
+			},
+			{
+				path: "change-password",
+				element: <ChangePasswordPage />,
+			},
+			{
+				path: "forgot-password",
+				element: <ForgotPasswordPage />,
 			},
 			{
 				path: "delete-account",

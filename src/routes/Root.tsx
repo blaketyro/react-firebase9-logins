@@ -36,15 +36,12 @@ const Header = () => {
 					</Link>
 					<Link to="/change-email" className="nav-link">
 						Change Email
-						{/* // TODO!!!  */}
 					</Link>
 					<Link to="/change-password" className="nav-link">
 						Change Password
-						{/* // TODO!!!  */}
 					</Link>
 					<Link to="/forgot-password" className="nav-link">
 						Forgot Password
-						{/* // TODO!!!  */}
 					</Link>
 					<Link to="/delete-account" className="nav-link">
 						Delete Account

@@ -28,6 +28,9 @@ const debugMsg = (...messages: unknown[]) => {
 
 export type User = FirebaseUser; // Re-export even the User type so nothing else needs to import Firebase.
 
+// TODO!!!? hardcode all errors as strings and also make generic function to do the repeated try/catching
+// export const Errors = { } as const
+
 const UserContext = createContext<User | null>(null);
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
@@ -163,6 +166,7 @@ export const deleteUser = async () => {
 	}
 };
 
+// Reauth docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#reauthenticatewithcredential
 export const ReauthenticateUserError = [
 	"auth/missing-password",
 	"auth/wrong-password",
@@ -185,4 +189,16 @@ export const reauthenticateUser = async (password: string) => {
 		debugMsg("Error reauthenticating:", error);
 		return extractErrorCode(error, ReauthenticateUserError);
 	}
+};
+
+export const ChangePasswordError = [] as const;
+export type ChangePasswordError = WithUnspecifiedError<typeof ChangePasswordError>;
+export const changePassword = async (currentPassword: string, newPassword: string, passwordConfirmation: string) => {
+	// try {
+	// 	if (!auth.currentUser) {
+	// 	}
+	// } catch (error) {
+	// 	debugMsg("Error changing password:", error)
+	// 	return extractErrorCode(error, ChangePasswordError)
+	// }
 };
