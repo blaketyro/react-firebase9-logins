@@ -27,12 +27,7 @@ const debugMsg = (...messages: unknown[]) => {
 //#region User Type and Context:
 
 export type User = FirebaseUser; // Re-export even the User type so nothing else needs to import Firebase.
-
-// TODO!!!? hardcode all errors as strings and also make generic function to do the repeated try/catching
-// export const Errors = { } as const
-
 const UserContext = createContext<User | null>(null);
-
 export const UserProvider = ({ children }: { children: ReactNode }) => {
 	const [user, setUser] = useState<User | null>(null);
 	useEffect(
@@ -45,52 +40,85 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 	);
 	return <UserContext.Provider value={user}>{children}</UserContext.Provider>;
 };
-
 export const useUser = () => useContext(UserContext);
 
 //#endregion
 
-// The sign up/in/out/etc. functions below convert the errors Firebase throws into strings that are returned instead.
-// This allows Typescript to know what exact "errors" (returns) can happen, giving better type safety.
+//#region Helper Types and Functions:
+// The core account functions below convert the errors Firebase throws into strings that are returned instead with
+// the help of these types and functions. This allows TS to know exactly what can happen, giving better type safety.
 
-export const UnspecifiedError = "misc/unspecified-error";
-export type UnspecifiedError = typeof UnspecifiedError;
-type WithUnspecifiedError<T extends readonly string[] = []> = UnspecifiedError | T[number];
+export const ErrorCode = {
+	UnspecifiedError: "misc/unspecified-error",
+	// Specified errors, A-Z:
+	AlreadyVerified: "misc/already-verified",
+	EmailAlreadyInUse: "auth/email-already-in-use",
+	InvalidEmail: "auth/invalid-email",
+	MissingPassword: "auth/missing-password",
+	NoEmail: "misc/no-email",
+	NoUser: "misc/no-user",
+	RequiresRecentLogin: "auth/requires-recent-login",
+	TooManyRequests: "auth/too-many-requests",
+	UnconfirmedPassword: "misc/unconfirmed-password",
+	UserNotFound: "auth/user-not-found",
+	WeakPassword: "auth/weak-password",
+	WrongPassword: "auth/wrong-password",
+} as const;
+export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
+type UnspecifiedErrorCode = typeof ErrorCode.UnspecifiedError;
+type SpecifiedErrorCode = Exclude<ErrorCode, UnspecifiedErrorCode>;
 
-const extractErrorCode = <T extends string>(error: unknown, specifiedErrors: readonly T[]): UnspecifiedError | T => {
+const extractErrorCode = <TCodes extends readonly SpecifiedErrorCode[]>(
+	error: unknown,
+	specifiedErrors: TCodes
+): TCodes[number] | UnspecifiedErrorCode => {
 	if (
 		error !== null &&
 		typeof error === "object" &&
 		"code" in error &&
 		typeof error.code === "string" &&
-		specifiedErrors.includes(error.code as T)
+		specifiedErrors.includes(error.code as TCodes[number])
 	) {
-		return error.code as T;
+		return error.code as TCodes[number];
 	}
-	return UnspecifiedError;
+	return ErrorCode.UnspecifiedError;
 };
+
+// The general try/catch logic is the same for all the account functions, so DRY it with this helper function.
+const handleErrorLogic = async <TCodes extends readonly SpecifiedErrorCode[]>(
+	debugName: string,
+	possibleErrors: TCodes,
+	logic: (throwCode: (code: SpecifiedErrorCode) => never) => Promise<void>
+) => {
+	try {
+		await logic((code) => {
+			throw { code };
+		});
+		debugMsg(`${debugName} Worked!`);
+	} catch (error) {
+		debugMsg(`${debugName} Errored:`, error);
+		return extractErrorCode(error, possibleErrors);
+	}
+};
+// TODO!!! use in other functions
+
+//#region Core Account Functions:
 
 // Sign up docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#createuserwithemailandpassword
 export const SignUpError = [
-	"auth/email-already-in-use",
-	"auth/invalid-email",
-	"auth/missing-password",
-	"auth/weak-password",
-	"misc/unconfirmed-password",
+	ErrorCode.EmailAlreadyInUse,
+	ErrorCode.InvalidEmail,
+	ErrorCode.MissingPassword,
+	ErrorCode.WeakPassword,
+	ErrorCode.UnconfirmedPassword,
 ] as const;
-export type SignUpError = WithUnspecifiedError<typeof SignUpError>;
-export const signUp = async (email: string, password: string, passwordConfirmation: string) => {
-	try {
+export const signUp = async (email: string, password: string, passwordConfirmation: string) =>
+	await handleErrorLogic("signUp", SignUpError, async (throwCode) => {
 		if (password !== passwordConfirmation) {
-			throw { code: "misc/unconfirmed-password" }; // Note that passwords of some or all whitespace are allowed.
+			throwCode(ErrorCode.UnconfirmedPassword); // Note that passwords of some or all whitespace are allowed.
 		}
 		await createUserWithEmailAndPassword(auth, email, password);
-		debugMsg("Successfully signed up as", auth.currentUser?.email);
-	} catch (error) {
-		debugMsg("Error signing up:", error);
-		return extractErrorCode(error, SignUpError);
-	}
-};
+	});
 
 // Sign in docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#signinwithemailandpassword
 export const SignInError = [
@@ -99,7 +127,6 @@ export const SignInError = [
 	"auth/missing-password",
 	"auth/wrong-password",
 ] as const;
-export type SignInError = WithUnspecifiedError<typeof SignInError>;
 export const signIn = async (email: string, password: string) => {
 	try {
 		await signInWithEmailAndPassword(auth, email, password);
@@ -112,7 +139,6 @@ export const signIn = async (email: string, password: string) => {
 
 // Sign out docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#signout
 export const SignOutError = [] as const;
-export type SignOutError = WithUnspecifiedError<typeof SignOutError>;
 export const signOut = async () => {
 	// Sign out shouldn't normally throw errors, but follow the same array/try/catch pattern as sign up/in to be safe.
 	// There may be unexpected errors since the docs are not exhaustive and this is more consistent and future-proof.
@@ -127,7 +153,6 @@ export const signOut = async () => {
 
 // Verify docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#sendemailverification
 export const SendVerificationEmailError = ["auth/too-many-requests", "misc/no-user", "misc/already-verified"] as const;
-export type SendVerificationEmailError = WithUnspecifiedError<typeof SendVerificationEmailError>;
 export const sendVerificationEmail = async (redirectUrl = publicSiteUrl) => {
 	try {
 		if (!auth.currentUser) {
@@ -151,7 +176,6 @@ export const sendVerificationEmail = async (redirectUrl = publicSiteUrl) => {
 
 // Delete docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#delete
 export const DeleteUserError = ["misc/no-user", "auth/requires-recent-login"] as const;
-export type DeleteUserError = WithUnspecifiedError<typeof DeleteUserError>;
 export const deleteUser = async () => {
 	try {
 		const toDelete = auth.currentUser?.email;
@@ -173,7 +197,6 @@ export const ReauthenticateUserError = [
 	"misc/no-user",
 	"misc/no-email",
 ] as const;
-export type ReauthenticateUserError = WithUnspecifiedError<typeof ReauthenticateUserError>;
 export const reauthenticateUser = async (password: string) => {
 	try {
 		if (!auth.currentUser) {
@@ -192,7 +215,6 @@ export const reauthenticateUser = async (password: string) => {
 };
 
 export const ChangePasswordError = [] as const;
-export type ChangePasswordError = WithUnspecifiedError<typeof ChangePasswordError>;
 export const changePassword = async (currentPassword: string, newPassword: string, passwordConfirmation: string) => {
 	// try {
 	// 	if (!auth.currentUser) {
@@ -202,3 +224,5 @@ export const changePassword = async (currentPassword: string, newPassword: strin
 	// 	return extractErrorCode(error, ChangePasswordError)
 	// }
 };
+
+//#endregion
