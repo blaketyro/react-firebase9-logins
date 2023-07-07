@@ -33,8 +33,9 @@ const ToastContext = createContext<{
 	setToasts: () => null,
 });
 
-const ToastPortal = ({ toasts, toastPortalId }: { toasts: ReadonlyMap<number, ToastData>; toastPortalId: string }) => {
+const ToastPortal = ({ toastPortalId }: { toastPortalId: string }) => {
 	const toastPortal = document.getElementById(toastPortalId);
+	const { toasts } = useContext(ToastContext);
 	const closeToast = useCloseToast();
 	return (
 		toastPortal &&
@@ -66,7 +67,7 @@ export const ToastProvider = ({
 	return (
 		<ToastContext.Provider value={toastValue}>
 			{children}
-			<ToastPortal toasts={toastValue.toasts} toastPortalId={toastPortalId} />
+			<ToastPortal toastPortalId={toastPortalId} />
 		</ToastContext.Provider>
 	);
 };

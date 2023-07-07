@@ -9,14 +9,11 @@ const ModalTestButton = () => {
 			style={{ minWidth: "9rem" }}
 			variant="light"
 			onClick={() => {
-				makeModal("Test Modal", () => (
-					<p>
-						This...
-						<br />
-						<br />
-						<br />
-						...is a modal!
-					</p>
+				makeModal("Test Modal", ({ close }) => (
+					<>
+						<p>This is a modal! You can click outside or hit ESC to exit.</p>
+						<Button onClick={() => close("ok")}>Ok</Button>
+					</>
 				));
 			}}
 		>

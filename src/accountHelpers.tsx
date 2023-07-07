@@ -11,7 +11,7 @@ import { MakeToast, useMakeToast } from "./toast";
 export const signOutHelper = async (makeToast: MakeToast) => {
 	switch (await signOut()) {
 		case undefined:
-			makeToast("Successfully signed out", "Signed Out");
+			makeToast("Successfully signed out", "Signed Out", "success");
 			break;
 		case "misc/unspecified-error":
 			makeToast("Unspecified error signing out", "Sign Out Error", "danger");
@@ -76,14 +76,17 @@ export const reauthenticateUserHelper = async (makeModal: MakeModal) => {
 };
 
 export const deleteUserHelper = async (makeToast: MakeToast, makeModal: MakeModal, alwaysReauthenticate?: boolean) => {
+	const makeErrorToast = (message: string) => makeToast(message, "Account Deletion Error", "danger");
+	const makeReauthNotProvidedToast = () => makeErrorToast("Reauthentication not provided");
+
 	if (alwaysReauthenticate) {
 		if (!(await reauthenticateUserHelper(makeModal))) {
+			makeReauthNotProvidedToast();
 			return false;
 		}
 	}
 
 	const makeSuccessToast = () => makeToast("Successfully deleted account", "Account Deleted", "success");
-	const makeErrorToast = (message: string) => makeToast(message, "Account Deletion Error", "danger");
 	switch (await deleteUser()) {
 		case undefined:
 			makeSuccessToast();
@@ -99,7 +102,7 @@ export const deleteUserHelper = async (makeToast: MakeToast, makeModal: MakeModa
 						makeErrorToast("Reauthentication unexpectedly failed"); // Should never happen.
 				}
 			} else {
-				makeErrorToast("Reauthentication not provided");
+				makeReauthNotProvidedToast();
 			}
 			break;
 		case "misc/no-user":

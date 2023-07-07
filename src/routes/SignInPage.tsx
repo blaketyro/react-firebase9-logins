@@ -20,6 +20,7 @@ const SignInPage = () => {
 			<h3
 				onClick={() => {
 					if (!user) {
+						// TODO!!! use constants for these and prevent sending email to example
 						setEmail("example@example.com");
 						setPassword("example");
 					}
