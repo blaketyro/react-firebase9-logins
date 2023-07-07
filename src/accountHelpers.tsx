@@ -80,7 +80,8 @@ export const reauthenticateUserHelper = async (makeModal: MakeModal) => {
 
 export const deleteUserHelper = async (makeToast: MakeToast, makeModal: MakeModal, alwaysReauthenticate?: boolean) => {
 	const makeErrorToast = (message: string) => makeToast(message, "Account Deletion Error", "danger");
-	const makeReauthNotProvidedToast = () => makeErrorToast("Reauthentication not provided");
+	const makeReauthNotProvidedToast = () =>
+		makeToast("Reauthentication not provided", "Account Not Deleted", "danger");
 
 	if (alwaysReauthenticate) {
 		if (!(await reauthenticateUserHelper(makeModal))) {

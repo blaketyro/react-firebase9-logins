@@ -64,11 +64,19 @@ export const useMakeGenericModal = () => {
 	};
 };
 
+// The fullscreen modal can be exited by clicking the background or hitting the Escape key.
 export const useMakeFullscreenModal = () => {
 	const makeGenericModal = useMakeGenericModal();
 	return (ModalComponent: ModalComponent, onClose?: (result: ModalResult) => void) => {
 		makeGenericModal(({ close }) => {
-			// TODO!!! handle ESC
+			useEffect(() => {
+				const handleEsc = (event: KeyboardEvent) => {
+					if (event.key === "Escape") close("exit");
+				};
+				window.addEventListener("keydown", handleEsc);
+				return () => window.removeEventListener("keydown", handleEsc);
+			}, []);
+
 			return (
 				<div className="fullscreen-modal" onClick={() => close("exit")} onKeyUp={(e) => console.log(e)}>
 					<ModalComponent close={close} />

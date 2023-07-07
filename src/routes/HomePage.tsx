@@ -107,6 +107,8 @@ const HomePage = () => {
 										void (async () => {
 											if (await reauthenticateUserHelper(makeModal)) {
 												makeToast("Successfully reauthenticated", "Reauthenticated", "success");
+											} else {
+												makeToast("Reauthentication cancelled", "Didn't Reauthenticate");
 											}
 										})();
 									}}
