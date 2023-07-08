@@ -197,6 +197,7 @@ export const reauthenticateUser = async (password: string) =>
 		await reauthenticateWithCredential(firebaseAuth.currentUser, authCredential);
 	});
 
+// Change password docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#updatepassword
 export const ChangePasswordError = [] as const;
 export const changePassword = async (currentPassword: string, newPassword: string, newPasswordConfirmation: string) => {
 	console.log(currentPassword, newPassword, newPasswordConfirmation);

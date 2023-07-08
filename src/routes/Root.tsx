@@ -37,6 +37,9 @@ const Header = () => {
 					<Link to="/change-email" className="nav-link">
 						Change Email
 					</Link>
+					<Link to="/change-profile" className="nav-link">
+						Change Profile
+					</Link>
 					<Link to="/change-password" className="nav-link">
 						Change Password
 					</Link>

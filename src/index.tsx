@@ -7,6 +7,7 @@ import "./index.css";
 import { ModalProvider } from "./modal";
 import ChangeEmailPage from "./routes/ChangeEmailPage";
 import ChangePasswordPage from "./routes/ChangePasswordPage";
+import ChangeProfilePage from "./routes/ChangeProfilePage";
 import DeleteAccountPage from "./routes/DeleteAccountPage";
 import ErrorPage from "./routes/ErrorPage";
 import ForgotPasswordPage from "./routes/ForgotPasswordPage";
@@ -47,6 +48,10 @@ const router = createBrowserRouter([
 			{
 				path: "change-email",
 				element: <ChangeEmailPage />,
+			},
+			{
+				path: "change-profile",
+				element: <ChangeProfilePage />,
 			},
 			{
 				path: "change-password",
