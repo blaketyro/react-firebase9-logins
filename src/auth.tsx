@@ -15,13 +15,14 @@ import {
 	reauthenticateWithCredential,
 	sendEmailVerification,
 	signInWithEmailAndPassword,
+	updatePassword,
 } from "firebase/auth";
 import { ReactNode, createContext, useContext, useEffect, useState } from "react";
 import { firebaseAuth, publicSiteUrl } from "./firebase-config";
 
-const DEBUG = true;
+const DEBUG_AUTH = true;
 const debugMsg = (...messages: unknown[]) => {
-	if (DEBUG) console.info(...messages);
+	if (DEBUG_AUTH) console.info(...messages);
 };
 
 //#region User Type and Context:
@@ -55,10 +56,11 @@ export const AuthErrorCode = {
 	EmailAlreadyInUse: "auth/email-already-in-use",
 	InvalidEmail: "auth/invalid-email",
 	MissingPassword: "auth/missing-password",
+	MissingNewPassword: "misc/missing-new-password",
 	NoEmail: "misc/no-email",
 	NoUser: "misc/no-user",
 	RequiresRecentLogin: "auth/requires-recent-login",
-	TooManyRequests: "auth/too-many-requests",
+	TooManyRequests: "auth/too-many-requests", // TODO!!! make this different as it always may be possible
 	UnconfirmedPassword: "misc/unconfirmed-password",
 	UserNotFound: "auth/user-not-found",
 	WeakPassword: "auth/weak-password",
@@ -91,7 +93,7 @@ const makeAuthFunction = <TCodes extends readonly SpecifiedAuthErrorCode[], TArg
 	logic: (errorWith: (code: TCodes[number]) => never, ...args: TArgs) => Promise<void>,
 	possibleErrors: TCodes
 ) => {
-	return async (...args: TArgs) => {
+	return async (...args: TArgs): Promise<undefined | TCodes[number] | UnspecifiedAuthErrorCode> => {
 		try {
 			await logic((code) => {
 				throw { code };
@@ -120,8 +122,8 @@ export const signUp = makeAuthFunction(
 		AuthErrorCode.EmailAlreadyInUse,
 		AuthErrorCode.InvalidEmail,
 		AuthErrorCode.MissingPassword,
-		AuthErrorCode.WeakPassword,
 		AuthErrorCode.UnconfirmedPassword,
+		AuthErrorCode.WeakPassword,
 	]
 );
 
@@ -183,12 +185,12 @@ export const deleteUser = makeAuthFunction(
 /** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#reauthenticatewithcredential */
 export const reauthenticateUser = makeAuthFunction(
 	"reauthenticateUser",
-	async (withError, password: string) => {
+	async (errorWith, password: string) => {
 		if (!firebaseAuth.currentUser) {
-			throw withError(AuthErrorCode.NoUser);
+			throw errorWith(AuthErrorCode.NoUser);
 		}
 		if (!firebaseAuth.currentUser.email) {
-			throw withError(AuthErrorCode.NoEmail);
+			throw errorWith(AuthErrorCode.NoEmail);
 		}
 		const authCredential = EmailAuthProvider.credential(firebaseAuth.currentUser.email, password);
 		await reauthenticateWithCredential(firebaseAuth.currentUser, authCredential);
@@ -196,15 +198,42 @@ export const reauthenticateUser = makeAuthFunction(
 	[AuthErrorCode.MissingPassword, AuthErrorCode.WrongPassword, AuthErrorCode.NoUser, AuthErrorCode.NoEmail]
 );
 
-// Change password docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#updatepassword
+/** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#updatepassword */
 export const changePassword = makeAuthFunction(
 	"changePassword",
-	async (_, currentPassword: string, newPassword: string, newPasswordConfirmation: string) => {
-		console.log(currentPassword, newPassword, newPasswordConfirmation);
-		await new Promise(() => null);
-		// TODO!!!
+	async (errorWith, currentPassword: string, newPassword: string, newPasswordConfirmation: string) => {
+		if (!firebaseAuth.currentUser) {
+			throw errorWith(AuthErrorCode.NoUser);
+		}
+		if (!firebaseAuth.currentUser.email) {
+			throw errorWith(AuthErrorCode.NoEmail);
+		}
+
+		// Always reauth with current password. This ensures auth/requires-recent-login can't happen.
+		const authCredential = EmailAuthProvider.credential(firebaseAuth.currentUser.email, currentPassword);
+		await reauthenticateWithCredential(firebaseAuth.currentUser, authCredential);
+
+		if (newPassword !== newPasswordConfirmation) {
+			throw errorWith(AuthErrorCode.UnconfirmedPassword);
+		}
+		// updatePassword in Firebase allows empty string as passwords which then can't be used to log in.
+		// (This may not be a bug but rather a way of resetting the password for passwordless auth?)
+		// So catch that case here. Fine since we needed to anyway to have a separate error scenario.
+		if (newPassword === "") {
+			throw errorWith(AuthErrorCode.MissingNewPassword);
+		}
+
+		await updatePassword(firebaseAuth.currentUser, newPassword);
 	},
-	[]
+	[
+		AuthErrorCode.MissingPassword,
+		AuthErrorCode.MissingNewPassword,
+		AuthErrorCode.NoEmail,
+		AuthErrorCode.NoUser,
+		AuthErrorCode.UnconfirmedPassword,
+		AuthErrorCode.WeakPassword,
+		AuthErrorCode.WrongPassword,
+	]
 );
 
 //#endregion

@@ -16,7 +16,8 @@ const SignInGuard = ({ children, mode }: { children: ReactNode; mode: "require-s
 			<>
 				<p className="mb-1">You must be signed in to use this page.</p>
 				<p className="mt-1">
-					<Link to="/sign-in">Sign in here</Link> or <Link to="/sign-up">create an account here</Link>.
+					<Link to="/sign-in">Sign in here</Link> or <Link to="/sign-up">create an account here</Link>, or
+					return to the <Link to="/">homepage</Link>.
 				</p>
 			</>
 		);

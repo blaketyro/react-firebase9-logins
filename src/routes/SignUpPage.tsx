@@ -58,11 +58,10 @@ const SignUpPage = () => {
 									makeErrorToast("No password provided");
 									break;
 								case AuthErrorCode.WeakPassword:
-									makeErrorToast("Password must be at least 6 characters long");
+									makeErrorToast("Password must be at least 6 characters");
 									break;
 								case AuthErrorCode.UnconfirmedPassword:
 									makeErrorToast("Passwords don't match");
-									setPasswordConfirmation("");
 									break;
 								default:
 									setEmail("");

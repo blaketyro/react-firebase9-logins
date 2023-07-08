@@ -2,13 +2,15 @@ import { useState } from "react";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
-import { changePassword } from "../auth";
+import { useNavigate } from "react-router-dom";
+import { AuthErrorCode, changePassword, signOut } from "../auth";
 import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
 import { useMakeToast } from "../toast";
 
 const ChangePasswordPage = () => {
 	const makeToast = useMakeToast();
+	const navigate = useNavigate();
 
 	const [currentPassword, setCurrentPassword] = useState("");
 	const [newPassword, setNewPassword] = useState("");
@@ -27,10 +29,38 @@ const ChangePasswordPage = () => {
 
 							switch (await changePassword(currentPassword, newPassword, newPasswordConfirmation)) {
 								case undefined:
+									setCurrentPassword("");
+									setNewPassword("");
+									setNewPasswordConfirmation("");
+									makeToast(
+										"Successfully changed password - please sign in again",
+										"Changed Password",
+										"success",
+										5000
+									);
+									await signOut();
+									navigate("/sign-in");
+									break;
+								case AuthErrorCode.MissingPassword:
+									makeErrorToast("Current password not provided");
+									break;
+								case AuthErrorCode.MissingNewPassword:
+									makeErrorToast("New password not provided");
+									break;
+								case AuthErrorCode.UnconfirmedPassword:
+									makeErrorToast("New passwords don't match");
+									break;
+								case AuthErrorCode.WeakPassword:
+									makeErrorToast("New password must be at least 6 characters");
+									break;
+								case AuthErrorCode.WrongPassword:
+									makeErrorToast("Incorrect current password");
 									break;
 								default:
-									makeErrorToast("error");
-								// TODO!!!
+									setCurrentPassword("");
+									setNewPassword("");
+									setNewPasswordConfirmation("");
+									makeErrorToast("Unspecified error changing password");
 							}
 						})();
 					}}
