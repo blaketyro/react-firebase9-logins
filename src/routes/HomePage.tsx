@@ -25,7 +25,7 @@ const HomePage = () => {
 	const user = useUser();
 	const makeToast = useMakeToast();
 	const makeModal = useMakeModal();
-	const photoURL = user?.photoURL; // ?? "https://upload.wikimedia.org/wikipedia/commons/b/bc/Unknown_person.jpg";
+	const photoURL = user?.photoURL ?? null; // "https://upload.wikimedia.org/wikipedia/commons/b/bc/Unknown_person.jpg"
 
 	return (
 		<Box wide>
