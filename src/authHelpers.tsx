@@ -2,12 +2,14 @@ import { useState } from "react";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
-import { AuthErrorCodes, deleteUser, reauthenticateUser, signOut } from "./auth";
+import { AuthErrorCodes, changeDisplayName, changeProfilePhoto, deleteUser, reauthenticateUser, signOut } from "./auth";
 import { MakeModal, ModalComponent, awaitModal } from "./modal";
 import { MakeToast, useMakeToast } from "./toast";
 
 export const exampleEmail = "example@example.com"; // https://stackoverflow.com/q/1368163
 export const examplePassword = "example";
+export const exampleDisplayName = "Example Name";
+export const examplePhotoUrl = "https://upload.wikimedia.org/wikipedia/commons/b/bc/Unknown_person.jpg";
 
 // Keep these async since sometimes it's useful to await for them to finish to do a further action.
 
@@ -121,4 +123,40 @@ export const deleteUserHelper = async (makeToast: MakeToast, makeModal: MakeModa
 			makeErrorToast("Unspecified error deleting account");
 	}
 	return false;
+};
+
+export const changeDisplayNameHelper = async (makeToast: MakeToast, newDisplayName: string) => {
+	const makeErrorToast = (message: string) => makeToast(message, "Display Name Change Error", "danger");
+	switch (await changeDisplayName(newDisplayName)) {
+		case null:
+			makeToast(
+				newDisplayName ? "Successfully changed display name" : "Successfully removed display name",
+				"Display Name Changed",
+				"success"
+			);
+			break;
+		case AuthErrorCodes.TooManyRequests:
+			makeErrorToast("Too many requests - try again later");
+			break;
+		default:
+			makeErrorToast("Unspecified error changing display name");
+	}
+};
+
+export const changeProfilePhotoHelper = async (makeToast: MakeToast, newPhotoUrl: string) => {
+	const makeErrorToast = (message: string) => makeToast(message, "Profile Photo Change Error", "danger");
+	switch (await changeProfilePhoto(newPhotoUrl)) {
+		case null:
+			makeToast(
+				newPhotoUrl ? "Successfully changed profile photo" : "Successfully removed profile photo",
+				"Profile Photo Changed",
+				"success"
+			);
+			break;
+		case AuthErrorCodes.TooManyRequests:
+			makeErrorToast("Too many requests - try again later");
+			break;
+		default:
+			makeErrorToast("Unspecified error changing profile photo");
+	}
 };

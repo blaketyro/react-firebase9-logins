@@ -70,7 +70,7 @@ const ChangePasswordPage = () => {
 				>
 					<Stack gap={2}>
 						<Form.Control
-							name="Password"
+							name="password"
 							type="password"
 							autoComplete="current-password"
 							placeholder="Current Password"

@@ -4,13 +4,16 @@ import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
 import { Link } from "react-router-dom";
 import { useUser } from "../auth";
+import { changeDisplayNameHelper, changeProfilePhotoHelper, exampleDisplayName, examplePhotoUrl } from "../authHelpers";
 import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
+import { useMakeToast } from "../toast";
 
 const CurrentProfile = () => {
 	const user = useUser();
-	const displayName = user?.displayName ?? null;
-	const photoURL = user?.photoURL ?? null; // "https://upload.wikimedia.org/wikipedia/commons/b/bc/Unknown_person.jpg"
+	// Treat empty string and null name/photos the same for simplicity. (Firebase seems to do this anyway?)
+	const displayName = user?.displayName || null;
+	const photoURL = user?.photoURL || null; // "https://upload.wikimedia.org/wikipedia/commons/b/bc/Unknown_person.jpg"
 
 	return (
 		<Stack className="border rounded p-3 mb-3 bg-dark">
@@ -38,54 +41,95 @@ const CurrentProfile = () => {
 };
 
 const ChangeProfilePage = () => {
-	// https://firebase.google.com/docs/reference/js/v8/firebase.User#updateprofile
-
+	const makeToast = useMakeToast();
 	const [displayName, setDisplayName] = useState("");
-	const [photoURL, setPhotoURL] = useState("");
+	const [photoUrl, setPhotoUrl] = useState("");
 
 	return (
 		<Box wide>
 			<h3>Change Profile</h3>
 			<SignInGuard mode="require-signed-in">
 				<CurrentProfile />
-				<Form>
-					<Stack gap={3}>
-						<Stack>
-							<p className="m-0 mb-1">Change Display Name</p>
-							<Stack gap={2} direction="horizontal">
-								<Form.Control
-									name="display-name"
-									type="text"
-									placeholder="New Display Name"
-									autoComplete="username"
-									value={displayName}
-									onChange={(e) => setDisplayName(e.target.value)}
-								/>
-								<Button>Update</Button>
-								<Button variant="danger">Remove</Button>
-							</Stack>
-						</Stack>
-						<Stack>
-							<p className="m-0 mb-1">Change Profile Photo URL</p>
-							<Stack gap={2} direction="horizontal">
-								<Form.Control
-									name="photo"
-									type="url"
-									placeholder="New Profile Photo URL"
-									autoComplete="photo"
-									value={photoURL}
-									onChange={(e) => setPhotoURL(e.target.value)}
-								/>
-								<Button>Update</Button>
-								<Button variant="danger">Remove</Button>
-							</Stack>
-						</Stack>
-
-						<p>
-							<Link to="/change-email">Change Email Here</Link>
+				<Stack gap={3}>
+					<Stack>
+						<p className="m-0 mb-1" onClick={() => setDisplayName(exampleDisplayName)}>
+							Change Display Name
 						</p>
+						<Stack gap={2} direction="horizontal">
+							<Form.Control
+								name="display-name"
+								type="text"
+								placeholder="New Display Name"
+								autoComplete="username"
+								value={displayName}
+								onChange={(e) => setDisplayName(e.target.value)}
+							/>
+							<Button
+								disabled={!displayName}
+								onClick={() => {
+									void (async () => {
+										await changeDisplayNameHelper(makeToast, displayName);
+										setDisplayName("");
+									})();
+								}}
+							>
+								Update
+							</Button>
+							<Button
+								variant="danger"
+								onClick={() => {
+									void (async () => {
+										await changeDisplayNameHelper(makeToast, "");
+										setDisplayName("");
+									})();
+								}}
+							>
+								Remove
+							</Button>
+						</Stack>
 					</Stack>
-				</Form>
+					<Stack>
+						<p className="m-0 mb-1" onClick={() => setPhotoUrl(examplePhotoUrl)}>
+							Change Profile Photo URL
+						</p>
+						<Stack gap={2} direction="horizontal">
+							<Form.Control
+								name="photo"
+								type="url"
+								placeholder="New Profile Photo URL"
+								autoComplete="photo"
+								value={photoUrl}
+								onChange={(e) => setPhotoUrl(e.target.value)}
+							/>
+							<Button
+								disabled={!photoUrl}
+								onClick={() => {
+									void (async () => {
+										await changeProfilePhotoHelper(makeToast, photoUrl);
+										setPhotoUrl("");
+									})();
+								}}
+							>
+								Update
+							</Button>
+							<Button
+								variant="danger"
+								onClick={() => {
+									void (async () => {
+										await changeProfilePhotoHelper(makeToast, "");
+										setPhotoUrl("");
+									})();
+								}}
+							>
+								Remove
+							</Button>
+						</Stack>
+					</Stack>
+
+					<p>
+						<Link to="/change-email">Change Email Here</Link>
+					</p>
+				</Stack>
 			</SignInGuard>
 		</Box>
 	);

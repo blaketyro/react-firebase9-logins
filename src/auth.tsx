@@ -1,5 +1,6 @@
 // My API for the user auth systems (dependency inverted so the React stuff doesn't need to know about Firebase).
 
+// All the firebase docs linked in this file are for v8 because v9 annoyingly has none.
 // firebase/auth docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth
 // User docs: https://firebase.google.com/docs/reference/js/v8/firebase.User
 // Edit email templates: https://console.firebase.google.com/u/0/project/react-firebase9-logins/authentication/emails
@@ -16,6 +17,7 @@ import {
 	sendEmailVerification,
 	signInWithEmailAndPassword,
 	updatePassword,
+	updateProfile,
 } from "firebase/auth";
 import { ReactNode, createContext, useContext, useEffect, useState } from "react";
 import { firebaseAuth, publicSiteUrl } from "./firebase-config";
@@ -96,10 +98,10 @@ const makeAuthFunction = <TCodes extends readonly SometimesPossibleErrorCode[], 
 				throw { code };
 			}, ...args);
 		} catch (error) {
-			debugMsg(`${debugName} Errored:`, error);
+			debugMsg(`${debugName} errored:`, error);
 			return extractErrorCode(error, possibleErrors);
 		}
-		debugMsg(`${debugName} Worked!`);
+		debugMsg(`${debugName} worked!`);
 		return null;
 	};
 };
@@ -170,7 +172,7 @@ export const sendVerificationEmail = makeAuthFunction(
 			throw errorWith(AuthErrorCodes.NoUser);
 		}
 		if (firebaseAuth.currentUser.emailVerified) {
-			// Curiously, Firebase will happily send more emails to someone already verified.
+			// Curiously, Firebase will happily send more emails to someone already verified. Idempotence I guess.
 			throw errorWith(AuthErrorCodes.AlreadyVerified);
 		}
 		await sendEmailVerification(firebaseAuth.currentUser, { url: redirectUrl });
@@ -246,6 +248,30 @@ export const changePassword = makeAuthFunction(
 		AuthErrorCodes.WeakPassword,
 		AuthErrorCodes.WrongPassword,
 	]
+);
+
+/** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#updateprofile */
+export const changeDisplayName = makeAuthFunction(
+	"changeDisplayName",
+	async (errorWith, newDisplayName: string) => {
+		if (!firebaseAuth.currentUser) {
+			throw errorWith(AuthErrorCodes.NoUser);
+		}
+		await updateProfile(firebaseAuth.currentUser, { displayName: newDisplayName });
+	},
+	[AuthErrorCodes.NoUser]
+);
+
+/** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#updateprofile */
+export const changeProfilePhoto = makeAuthFunction(
+	"changeProfilePhoto",
+	async (errorWith, newPhotoUrl: string) => {
+		if (!firebaseAuth.currentUser) {
+			throw errorWith(AuthErrorCodes.NoUser);
+		}
+		await updateProfile(firebaseAuth.currentUser, { photoURL: newPhotoUrl });
+	},
+	[AuthErrorCodes.NoUser]
 );
 
 //#endregion
