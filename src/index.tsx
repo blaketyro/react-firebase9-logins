@@ -5,6 +5,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { UserProvider } from "./auth";
 import "./index.css";
 import { ModalProvider } from "./modal";
+import ActionPage from "./routes/ActionPage";
 import ChangeEmailPage from "./routes/ChangeEmailPage";
 import ChangePasswordPage from "./routes/ChangePasswordPage";
 import ChangeProfilePage from "./routes/ChangeProfilePage";
@@ -12,7 +13,6 @@ import DeleteAccountPage from "./routes/DeleteAccountPage";
 import ErrorPage from "./routes/ErrorPage";
 import ForgotPasswordPage from "./routes/ForgotPasswordPage";
 import HomePage from "./routes/HomePage";
-import OobActionPage from "./routes/OobActionPage";
 import Root from "./routes/Root";
 import SignInPage from "./routes/SignInPage";
 import SignOutPage from "./routes/SignOutPage";
@@ -68,7 +68,7 @@ const router = createBrowserRouter([
 			},
 			{
 				path: "action",
-				element: <OobActionPage />,
+				element: <ActionPage />,
 			},
 		],
 	},

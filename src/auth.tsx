@@ -56,9 +56,11 @@ type AlwaysPossibleErrorCode = (typeof AlwaysPossibleErrorCodes)[keyof typeof Al
 const SometimesPossibleErrorCodes = {
 	AlreadyVerified: "misc/already-verified",
 	EmailAlreadyInUse: "auth/email-already-in-use",
+	ExpiredActionCode: "auth/expired-action-code",
+	InvalidActionCode: "auth/invalid-action-code",
 	InvalidEmail: "auth/invalid-email",
-	MissingPassword: "auth/missing-password",
 	MissingNewPassword: "misc/missing-new-password",
+	MissingPassword: "auth/missing-password",
 	NoEmail: "misc/no-email",
 	NoUser: "misc/no-user",
 	RequiresRecentLogin: "auth/requires-recent-login",
@@ -183,6 +185,15 @@ export const sendVerificationEmail = makeAuthFunction(
 	// https://console.firebase.google.com/u/0/project/react-firebase9-logins/authentication/emails
 	// Could customize more following https://blog.logrocket.com/send-custom-email-templates-firebase-react-express
 	// which uses SendGrid which allows 100 emails per day free: https://sendgrid.com/pricing/
+);
+
+/** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#applyactioncode */
+export const confirmVerificationEmail = makeAuthFunction(
+	"confirmVerificationEmail",
+	async (_, oobCode: string) => {
+		await Firebase.applyActionCode(auth, oobCode);
+	},
+	[AuthErrorCodes.InvalidActionCode, AuthErrorCodes.ExpiredActionCode, AuthErrorCodes.UserNotFound]
 );
 
 /** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#reauthenticatewithcredential */
