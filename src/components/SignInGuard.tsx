@@ -1,8 +1,8 @@
 import { ReactNode } from "react";
 import Button from "react-bootstrap/Button";
 import { Link } from "react-router-dom";
-import { signOutHelper } from "../accountHelpers";
-import { useUser } from "../accounts";
+import { useUser } from "../auth";
+import { signOutHelper } from "../authHelpers";
 import { useMakeToast } from "../toast";
 
 const SignInGuard = ({ children, mode }: { children: ReactNode; mode: "require-signed-in" | "require-signed-out" }) => {

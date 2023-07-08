@@ -2,7 +2,7 @@ import { useState } from "react";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
-import { deleteUser, reauthenticateUser, signOut } from "./accounts";
+import { AuthErrorCode, deleteUser, reauthenticateUser, signOut } from "./auth";
 import { MakeModal, ModalComponent, awaitModal } from "./modal";
 import { MakeToast, useMakeToast } from "./toast";
 
@@ -16,7 +16,7 @@ export const signOutHelper = async (makeToast: MakeToast) => {
 		case undefined:
 			makeToast("Successfully signed out", "Signed Out", "success");
 			break;
-		case "misc/unspecified-error":
+		default:
 			makeToast("Unspecified error signing out", "Sign Out Error", "danger");
 	}
 };
@@ -38,15 +38,13 @@ const ReauthenticationModal: ModalComponent = ({ close }) => {
 							case undefined:
 								close("success");
 								break;
-							case "auth/missing-password":
+							case AuthErrorCode.MissingPassword:
 								makeErrorToast("No password provided");
 								break;
-							case "auth/wrong-password":
+							case AuthErrorCode.WrongPassword:
 								makeErrorToast("Incorrect password");
 								break;
-							case "misc/no-user":
-							case "misc/no-email":
-							case "misc/unspecified-error":
+							default:
 								makeErrorToast("Unspecified error reauthenticating");
 						}
 					})();
@@ -95,7 +93,7 @@ export const deleteUserHelper = async (makeToast: MakeToast, makeModal: MakeModa
 		case undefined:
 			makeSuccessToast();
 			return true;
-		case "auth/requires-recent-login":
+		case AuthErrorCode.RequiresRecentLogin:
 			if (await reauthenticateUserHelper(makeModal)) {
 				// Try deleting again after successful reauth.
 				switch (await deleteUser()) {
@@ -109,8 +107,7 @@ export const deleteUserHelper = async (makeToast: MakeToast, makeModal: MakeModa
 				makeReauthNotProvidedToast();
 			}
 			break;
-		case "misc/no-user":
-		case "misc/unspecified-error":
+		default:
 			makeErrorToast("Unspecified error deleting account");
 	}
 	return false;

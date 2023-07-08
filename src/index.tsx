@@ -2,7 +2,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { UserProvider } from "./accounts";
+import { UserProvider } from "./auth";
 import "./index.css";
 import { ModalProvider } from "./modal";
 import ChangeEmailPage from "./routes/ChangeEmailPage";

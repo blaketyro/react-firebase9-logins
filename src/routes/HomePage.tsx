@@ -4,8 +4,8 @@ import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import Stack from "react-bootstrap/Stack";
 import { Link } from "react-router-dom";
-import { deleteUserHelper, reauthenticateUserHelper } from "../accountHelpers";
-import { useUser } from "../accounts";
+import { useUser } from "../auth";
+import { deleteUserHelper, reauthenticateUserHelper } from "../authHelpers";
 import Box from "../components/Box";
 import { useMakeModal } from "../modal";
 import { useMakeToast } from "../toast";
@@ -33,7 +33,7 @@ const HomePage = () => {
 			<p>
 				This website,{" "}
 				<a href="https://react-firebase9-logins.firebaseapp.com">react-firebase9-logins.firebaseapp.com</a>, is
-				a demo Firebase app that implements user logins and accounts using the{" "}
+				a reference implementation of a Firebase app that implements user auth and logins using the{" "}
 				<a href="https://firebase.google.com/docs/web/modular-upgrade">Firebase 9+ modular API</a>, as well as
 				the{" "}
 				<a href="https://firebase.google.com/docs/auth?hl=en&authuser=1&_gl=1*1oolcop*_ga*Mjk1NzA5MjQ0LjE2ODMwODA2MTY.*_ga_CW55HF8NVT*MTY4NzgwNDE4OC4yMi4xLjE2ODc4MDQzMzguMC4wLjA.#identity-platform">

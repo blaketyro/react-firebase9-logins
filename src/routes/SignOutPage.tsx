@@ -1,6 +1,6 @@
 import Button from "react-bootstrap/Button";
-import { signOutHelper } from "../accountHelpers";
-import { useUser } from "../accounts";
+import { useUser } from "../auth";
+import { signOutHelper } from "../authHelpers";
 import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
 import { useMakeToast } from "../toast";

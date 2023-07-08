@@ -3,8 +3,8 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
 import { useNavigate } from "react-router-dom";
-import { exampleEmail, examplePassword } from "../accountHelpers";
-import { signUp, useUser } from "../accounts";
+import { AuthErrorCode, signUp, useUser } from "../auth";
+import { exampleEmail, examplePassword } from "../authHelpers";
 import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
 import { useMakeToast } from "../toast";
@@ -48,23 +48,23 @@ const SignUpPage = () => {
 									makeToast("Successfully signed up!", "Signed Up", "success");
 									navigate("/");
 									break;
-								case "auth/email-already-in-use":
+								case AuthErrorCode.EmailAlreadyInUse:
 									makeErrorToast("That email already has an account");
 									break;
-								case "auth/invalid-email":
+								case AuthErrorCode.InvalidEmail:
 									makeErrorToast("Invalid email address");
 									break;
-								case "auth/missing-password":
+								case AuthErrorCode.MissingPassword:
 									makeErrorToast("No password provided");
 									break;
-								case "auth/weak-password":
+								case AuthErrorCode.WeakPassword:
 									makeErrorToast("Password must be at least 6 characters long");
 									break;
-								case "misc/unconfirmed-password":
+								case AuthErrorCode.UnconfirmedPassword:
 									makeErrorToast("Passwords don't match");
 									setPasswordConfirmation("");
 									break;
-								case "misc/unspecified-error":
+								default:
 									setEmail("");
 									setPassword("");
 									setPasswordConfirmation("");

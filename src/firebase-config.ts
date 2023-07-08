@@ -15,8 +15,8 @@ const firebaseConfig = {
 } as const;
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+const firebaseApp = initializeApp(firebaseConfig);
+export const firebaseAuth = getAuth(firebaseApp);
 
 export const publicSiteUrl = "https://react-firebase9-logins.firebaseapp.com/";
 // ...web.app also works but the ...firebaseapp.com seems more common in templates and stuff so use it for consistency.

@@ -3,8 +3,8 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
 import { useNavigate } from "react-router-dom";
-import { exampleEmail, examplePassword } from "../accountHelpers";
-import { signIn, useUser } from "../accounts";
+import { AuthErrorCode, signIn, useUser } from "../auth";
+import { exampleEmail, examplePassword } from "../authHelpers";
 import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
 import { useMakeToast } from "../toast";
@@ -41,19 +41,19 @@ const SignInPage = () => {
 									makeToast("Successfully signed in", "Signed In", "success");
 									navigate("/");
 									break;
-								case "auth/invalid-email":
+								case AuthErrorCode.InvalidEmail:
 									makeErrorToast("Invalid email address");
 									break;
-								case "auth/user-not-found":
+								case AuthErrorCode.UserNotFound:
 									makeErrorToast("User not found");
 									break;
-								case "auth/missing-password":
+								case AuthErrorCode.MissingPassword:
 									makeErrorToast("No password provided");
 									break;
-								case "auth/wrong-password":
+								case AuthErrorCode.WrongPassword:
 									makeErrorToast("Incorrect password");
 									break;
-								case "misc/unspecified-error":
+								default:
 									setEmail("");
 									makeErrorToast("Unspecified error signing in");
 							}

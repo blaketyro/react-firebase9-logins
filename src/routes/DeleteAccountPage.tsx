@@ -1,6 +1,6 @@
 import Button from "react-bootstrap/Button";
 import { useNavigate } from "react-router-dom";
-import { deleteUserHelper } from "../accountHelpers";
+import { deleteUserHelper } from "../authHelpers";
 import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
 import { useMakeModal } from "../modal";

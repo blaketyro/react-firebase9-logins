@@ -1,7 +1,7 @@
 import Button from "react-bootstrap/Button";
 import { Link } from "react-router-dom";
-import { exampleEmail } from "../accountHelpers";
-import { sendVerificationEmail, useUser } from "../accounts";
+import { AuthErrorCode, sendVerificationEmail, useUser } from "../auth";
+import { exampleEmail } from "../authHelpers";
 import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
 import { publicSiteUrl } from "../firebase-config";
@@ -47,12 +47,10 @@ const VerifyEmailPage = () => {
 										case undefined:
 											makeToast("Sent verification email", "Sent Email");
 											break;
-										case "auth/too-many-requests":
+										case AuthErrorCode.TooManyRequests:
 											makeErrorToast("Too many requests! Try again in a bit");
 											break;
-										case "misc/no-user":
-										case "misc/already-verified":
-										case "misc/unspecified-error":
+										default:
 											makeErrorToast("Unspecified error sending verification email");
 									}
 								})();
