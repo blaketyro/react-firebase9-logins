@@ -25,7 +25,7 @@ const ChangePasswordPage = () => {
 						event.preventDefault();
 						void (async () => {
 							const makeErrorToast = (message: string) =>
-								makeToast(message, "Change Password Error", "danger");
+								makeToast(message, "Error Changing Password", "danger");
 
 							switch (await changePassword(currentPassword, newPassword, newPasswordConfirmation)) {
 								case null:

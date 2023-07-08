@@ -14,7 +14,7 @@ export const examplePhotoUrl = "https://upload.wikimedia.org/wikipedia/commons/b
 // Keep these async since sometimes it's useful to await for them to finish to do a further action.
 
 export const signOutHelper = async (makeToast: MakeToast) => {
-	const makeErrorToast = (message: string) => makeToast(message, "Sign Out Error", "danger");
+	const makeErrorToast = (message: string) => makeToast(message, "Error Signing Out", "danger");
 
 	switch (await signOut()) {
 		case null:
@@ -39,7 +39,7 @@ const ReauthenticationModal: ModalComponent = ({ close }) => {
 					event.preventDefault();
 					void (async () => {
 						const makeErrorToast = (message: string) =>
-							makeToast(message, "Reauthentication Error", "danger");
+							makeToast(message, "Error Reauthenticating", "danger");
 						setPassword(""); // Always clear password.
 						switch (await reauthenticateUser(password)) {
 							case null:
@@ -87,7 +87,7 @@ export const reauthenticateUserHelper = async (makeModal: MakeModal) => {
 };
 
 export const deleteUserHelper = async (makeToast: MakeToast, makeModal: MakeModal, alwaysReauthenticate?: boolean) => {
-	const makeErrorToast = (message: string) => makeToast(message, "Account Deletion Error", "danger");
+	const makeErrorToast = (message: string) => makeToast(message, "Error Deleting Account", "danger");
 	const makeReauthNotProvidedToast = () =>
 		makeToast("Reauthentication not provided", "Account Not Deleted", "danger");
 
@@ -126,7 +126,7 @@ export const deleteUserHelper = async (makeToast: MakeToast, makeModal: MakeModa
 };
 
 export const changeDisplayNameHelper = async (makeToast: MakeToast, newDisplayName: string) => {
-	const makeErrorToast = (message: string) => makeToast(message, "Display Name Change Error", "danger");
+	const makeErrorToast = (message: string) => makeToast(message, "Error Changing Display Name", "danger");
 	switch (await changeDisplayName(newDisplayName)) {
 		case null:
 			makeToast(
@@ -144,7 +144,7 @@ export const changeDisplayNameHelper = async (makeToast: MakeToast, newDisplayNa
 };
 
 export const changeProfilePhotoHelper = async (makeToast: MakeToast, newPhotoUrl: string) => {
-	const makeErrorToast = (message: string) => makeToast(message, "Profile Photo Change Error", "danger");
+	const makeErrorToast = (message: string) => makeToast(message, "Error Changing Profile Photo", "danger");
 	switch (await changeProfilePhoto(newPhotoUrl)) {
 		case null:
 			makeToast(

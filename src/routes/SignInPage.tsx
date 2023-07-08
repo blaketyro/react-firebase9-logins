@@ -2,7 +2,7 @@ import { useState } from "react";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthErrorCodes, signIn, useUser } from "../auth";
 import { exampleEmail, examplePassword } from "../authHelpers";
 import Box from "../components/Box";
@@ -33,7 +33,8 @@ const SignInPage = () => {
 					onSubmit={(event) => {
 						event.preventDefault();
 						void (async () => {
-							const makeErrorToast = (message: string) => makeToast(message, "Sign In Error", "danger");
+							const makeErrorToast = (message: string) =>
+								makeToast(message, "Error Signing In", "danger");
 							setPassword(""); // Always clear password.
 
 							switch (await signIn(email, password)) {
@@ -82,6 +83,11 @@ const SignInPage = () => {
 							onChange={(e) => setPassword(e.target.value)}
 						/>
 						<Button type="submit">Sign In</Button>
+
+						<Stack gap={2} direction="horizontal" className="justify-content-between">
+							<Link to="/forgot-password">Forgot Password</Link>
+							<Link to="/sign-up">Sign Up</Link>
+						</Stack>
 					</Stack>
 				</Form>
 			</SignInGuard>

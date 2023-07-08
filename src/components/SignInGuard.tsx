@@ -25,12 +25,14 @@ const SignInGuard = ({ children, mode }: { children: ReactNode; mode: "require-s
 		return user ? (
 			<>
 				<p className="mb-1 ">
-					You are already signed in as <span className="text-info">{user.email}</span>.
+					You must be signed out to use this page. You are signed in as{" "}
+					<span className="text-info">{user.email}</span>.
 				</p>
+
 				<p className="mt-1">
-					Return to the <Link to="/">homepage</Link> or sign out to proceed.
+					Sign out to proceed or return to the <Link to="/">homepage</Link>.
 				</p>
-				<Button variant="secondary" size="sm" onClick={() => void signOutHelper(makeToast)}>
+				<Button variant="secondary" onClick={() => void signOutHelper(makeToast)}>
 					Sign Out
 				</Button>
 			</>

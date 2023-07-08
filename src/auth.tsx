@@ -7,20 +7,9 @@
 
 // TODO? Email enumeration prevention? https://firebase.google.com/docs/auth/web/password-auth#enumeration-protection
 
-import {
-	EmailAuthProvider,
-	User as FirebaseUser,
-	createUserWithEmailAndPassword,
-	signOut as firebaseSignOut,
-	onAuthStateChanged,
-	reauthenticateWithCredential,
-	sendEmailVerification,
-	signInWithEmailAndPassword,
-	updatePassword,
-	updateProfile,
-} from "firebase/auth";
+import * as Firebase from "firebase/auth";
 import { ReactNode, createContext, useContext, useEffect, useState } from "react";
-import { firebaseAuth, publicSiteUrl } from "./firebase-config";
+import { auth } from "./firebase-config";
 
 const DEBUG_AUTH = true;
 const debugMsg = (...messages: unknown[]) => {
@@ -29,13 +18,13 @@ const debugMsg = (...messages: unknown[]) => {
 
 //#region User Type and Context:
 
-export type User = FirebaseUser; // Re-export even the User type so nothing else needs to import Firebase.
+export type User = Firebase.User; // Re-export even the User type so nothing else needs to import Firebase.
 const UserContext = createContext<User | null>(null);
 export const UserProvider = ({ children }: { children: ReactNode }) => {
 	const [user, setUser] = useState<User | null>(null);
 	useEffect(
 		() =>
-			onAuthStateChanged(firebaseAuth, (currentUser) => {
+			Firebase.onAuthStateChanged(auth, (currentUser) => {
 				debugMsg("User is now", currentUser?.email ?? null);
 				setUser(currentUser);
 			}),
@@ -48,6 +37,15 @@ export const useUser = () => useContext(UserContext);
 //#endregion
 
 //#region Helper Types and Functions:
+
+export const getOrigin = (path?: string) => {
+	const origin = window.origin;
+	if (path === undefined) {
+		return origin;
+	} else {
+		return origin + (path.startsWith("/") ? path : `/${path}`);
+	}
+};
 
 const AlwaysPossibleErrorCodes = {
 	UnspecifiedError: "misc/unspecified-error",
@@ -125,7 +123,7 @@ export const signUp = makeAuthFunction(
 		if (password !== passwordConfirmation) {
 			throw errorWith(AuthErrorCodes.UnconfirmedPassword);
 		}
-		await createUserWithEmailAndPassword(firebaseAuth, email, password);
+		await Firebase.createUserWithEmailAndPassword(auth, email, password);
 	},
 	[
 		AuthErrorCodes.EmailAlreadyInUse,
@@ -140,7 +138,7 @@ export const signUp = makeAuthFunction(
 export const signIn = makeAuthFunction(
 	"signIn",
 	async (_, email: string, password: string) => {
-		await signInWithEmailAndPassword(firebaseAuth, email, password);
+		await Firebase.signInWithEmailAndPassword(auth, email, password);
 	},
 	[
 		AuthErrorCodes.InvalidEmail,
@@ -155,7 +153,7 @@ export const SignOutError = [] as const;
 export const signOut = makeAuthFunction(
 	"signOut",
 	async () => {
-		await firebaseSignOut(firebaseAuth);
+		await Firebase.signOut(auth);
 	},
 	[] // Sign out shouldn't error, but keep the same form for consistency and safety.
 );
@@ -163,19 +161,19 @@ export const signOut = makeAuthFunction(
 /** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#sendemailverification */
 export const sendVerificationEmail = makeAuthFunction(
 	"sendVerificationEmail",
-	async (errorWith, redirectUrl: string = publicSiteUrl) => {
-		if (!firebaseAuth.currentUser) {
+	async (errorWith, redirectUrl: string = getOrigin()) => {
+		if (!auth.currentUser) {
 			// The `throw` before `errorWith(...);` here and elsewhere is only needed to keep TS control flow analysis
 			// happy since it can't tell that `errorWith` always throws an error, even though it returns never.
 			// `return errorWith(...);` would also work identically, but using `throw` seems clearer.
 			// See more: https://github.com/microsoft/TypeScript/issues/12825
 			throw errorWith(AuthErrorCodes.NoUser);
 		}
-		if (firebaseAuth.currentUser.emailVerified) {
+		if (auth.currentUser.emailVerified) {
 			// Curiously, Firebase will happily send more emails to someone already verified. Idempotence I guess.
 			throw errorWith(AuthErrorCodes.AlreadyVerified);
 		}
-		await sendEmailVerification(firebaseAuth.currentUser, { url: redirectUrl });
+		await Firebase.sendEmailVerification(auth.currentUser, { url: redirectUrl });
 	},
 	[AuthErrorCodes.NoUser, AuthErrorCodes.AlreadyVerified]
 	// Verification email template can't be customized much:
@@ -184,30 +182,18 @@ export const sendVerificationEmail = makeAuthFunction(
 	// which uses SendGrid which allows 100 emails per day free: https://sendgrid.com/pricing/
 );
 
-/** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#delete */
-export const deleteUser = makeAuthFunction(
-	"deleteUser",
-	async (errorWith) => {
-		if (!firebaseAuth.currentUser) {
-			throw errorWith(AuthErrorCodes.NoUser);
-		}
-		await firebaseAuth.currentUser.delete();
-	},
-	[AuthErrorCodes.NoUser, AuthErrorCodes.RequiresRecentLogin]
-);
-
 /** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#reauthenticatewithcredential */
 export const reauthenticateUser = makeAuthFunction(
 	"reauthenticateUser",
 	async (errorWith, password: string) => {
-		if (!firebaseAuth.currentUser) {
+		if (!auth.currentUser) {
 			throw errorWith(AuthErrorCodes.NoUser);
 		}
-		if (!firebaseAuth.currentUser.email) {
+		if (!auth.currentUser.email) {
 			throw errorWith(AuthErrorCodes.NoEmail);
 		}
-		const authCredential = EmailAuthProvider.credential(firebaseAuth.currentUser.email, password);
-		await reauthenticateWithCredential(firebaseAuth.currentUser, authCredential);
+		const authCredential = Firebase.EmailAuthProvider.credential(auth.currentUser.email, password);
+		await Firebase.reauthenticateWithCredential(auth.currentUser, authCredential);
 	},
 	[AuthErrorCodes.MissingPassword, AuthErrorCodes.WrongPassword, AuthErrorCodes.NoUser, AuthErrorCodes.NoEmail]
 );
@@ -216,16 +202,16 @@ export const reauthenticateUser = makeAuthFunction(
 export const changePassword = makeAuthFunction(
 	"changePassword",
 	async (errorWith, currentPassword: string, newPassword: string, newPasswordConfirmation: string) => {
-		if (!firebaseAuth.currentUser) {
+		if (!auth.currentUser) {
 			throw errorWith(AuthErrorCodes.NoUser);
 		}
-		if (!firebaseAuth.currentUser.email) {
+		if (!auth.currentUser.email) {
 			throw errorWith(AuthErrorCodes.NoEmail);
 		}
 
 		// Always reauth with current password. This ensures auth/requires-recent-login can't happen.
-		const authCredential = EmailAuthProvider.credential(firebaseAuth.currentUser.email, currentPassword);
-		await reauthenticateWithCredential(firebaseAuth.currentUser, authCredential);
+		const authCredential = Firebase.EmailAuthProvider.credential(auth.currentUser.email, currentPassword);
+		await Firebase.reauthenticateWithCredential(auth.currentUser, authCredential);
 
 		if (newPassword !== newPasswordConfirmation) {
 			throw errorWith(AuthErrorCodes.UnconfirmedPassword);
@@ -237,7 +223,7 @@ export const changePassword = makeAuthFunction(
 			throw errorWith(AuthErrorCodes.MissingNewPassword);
 		}
 
-		await updatePassword(firebaseAuth.currentUser, newPassword);
+		await Firebase.updatePassword(auth.currentUser, newPassword);
 	},
 	[
 		AuthErrorCodes.MissingPassword,
@@ -254,10 +240,10 @@ export const changePassword = makeAuthFunction(
 export const changeDisplayName = makeAuthFunction(
 	"changeDisplayName",
 	async (errorWith, newDisplayName: string) => {
-		if (!firebaseAuth.currentUser) {
+		if (!auth.currentUser) {
 			throw errorWith(AuthErrorCodes.NoUser);
 		}
-		await updateProfile(firebaseAuth.currentUser, { displayName: newDisplayName });
+		await Firebase.updateProfile(auth.currentUser, { displayName: newDisplayName });
 	},
 	[AuthErrorCodes.NoUser]
 );
@@ -266,12 +252,33 @@ export const changeDisplayName = makeAuthFunction(
 export const changeProfilePhoto = makeAuthFunction(
 	"changeProfilePhoto",
 	async (errorWith, newPhotoUrl: string) => {
-		if (!firebaseAuth.currentUser) {
+		if (!auth.currentUser) {
 			throw errorWith(AuthErrorCodes.NoUser);
 		}
-		await updateProfile(firebaseAuth.currentUser, { photoURL: newPhotoUrl });
+		await Firebase.updateProfile(auth.currentUser, { photoURL: newPhotoUrl });
 	},
 	[AuthErrorCodes.NoUser]
+);
+
+/** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#sendpasswordresetemail */
+export const sendPasswordResetEmail = makeAuthFunction(
+	"sendPasswordResetEmail",
+	async (_, email: string, redirectUrl: string = getOrigin()) => {
+		await Firebase.sendPasswordResetEmail(auth, email, { url: redirectUrl });
+	},
+	[AuthErrorCodes.InvalidEmail, AuthErrorCodes.UserNotFound]
+);
+
+/** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#delete */
+export const deleteUser = makeAuthFunction(
+	"deleteUser",
+	async (errorWith) => {
+		if (!auth.currentUser) {
+			throw errorWith(AuthErrorCodes.NoUser);
+		}
+		await auth.currentUser.delete();
+	},
+	[AuthErrorCodes.NoUser, AuthErrorCodes.RequiresRecentLogin]
 );
 
 //#endregion

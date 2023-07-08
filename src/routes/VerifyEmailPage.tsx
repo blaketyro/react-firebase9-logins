@@ -1,10 +1,9 @@
 import Button from "react-bootstrap/Button";
 import { Link } from "react-router-dom";
-import { AuthErrorCodes, sendVerificationEmail, useUser } from "../auth";
+import { AuthErrorCodes, getOrigin, sendVerificationEmail, useUser } from "../auth";
 import { exampleEmail } from "../authHelpers";
 import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
-import { publicSiteUrl } from "../firebase-config";
 import { useMakeToast } from "../toast";
 
 // TODO? Automatically notice when email has been verified and update the page?
@@ -33,7 +32,6 @@ const VerifyEmailPage = () => {
 							email that is sent to <span className="text-info">{user?.email}</span>.
 						</p>
 						<Button
-							variant="secondary"
 							onClick={() => {
 								void (async () => {
 									if (user?.email === exampleEmail) {
@@ -42,8 +40,8 @@ const VerifyEmailPage = () => {
 									}
 
 									const makeErrorToast = (message: string) =>
-										makeToast(message, "Email Error", "danger");
-									switch (await sendVerificationEmail(publicSiteUrl + "verify-email")) {
+										makeToast(message, "Error Sending Email", "danger");
+									switch (await sendVerificationEmail(getOrigin("/verify-email"))) {
 										case null:
 											makeToast("Sent verification email", "Sent Email");
 											break;

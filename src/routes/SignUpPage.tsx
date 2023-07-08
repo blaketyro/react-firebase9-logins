@@ -38,7 +38,8 @@ const SignUpPage = () => {
 					onSubmit={(event) => {
 						event.preventDefault();
 						void (async () => {
-							const makeErrorToast = (message: string) => makeToast(message, "Sign Up Error", "danger");
+							const makeErrorToast = (message: string) =>
+								makeToast(message, "Error Signing Up", "danger");
 							// Debatable when exactly which textboxes should be cleared.
 							switch (await signUp(email, password, passwordConfirmation)) {
 								case null:
