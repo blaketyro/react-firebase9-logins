@@ -1,4 +1,7 @@
-// My API for the user account systems (dependency inverted so the React stuff doesn't need to know about Firebase).
+// My API for the user auth systems (dependency inverted so the React stuff doesn't need to know about Firebase).
+
+// TODO!!! rename file to auth? and rename auth in fb config
+// TODO!!! have an auth function maker, ofc
 
 // firebase/auth docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth
 // User docs: https://firebase.google.com/docs/reference/js/v8/firebase.User
@@ -88,7 +91,7 @@ const extractErrorCode = <TCodes extends readonly SpecifiedErrorCode[]>(
 const handleErrorLogic = async <TCodes extends readonly SpecifiedErrorCode[]>(
 	debugName: string,
 	possibleErrors: TCodes,
-	logic: (throwCode: (code: SpecifiedErrorCode) => never) => Promise<void>
+	logic: (errorWith: (code: TCodes[number]) => never) => Promise<void>
 ) => {
 	try {
 		await logic((code) => {
@@ -100,7 +103,6 @@ const handleErrorLogic = async <TCodes extends readonly SpecifiedErrorCode[]>(
 		return extractErrorCode(error, possibleErrors);
 	}
 };
-// TODO!!! use in other functions
 
 //#region Core Account Functions:
 
@@ -113,109 +115,92 @@ export const SignUpError = [
 	ErrorCode.UnconfirmedPassword,
 ] as const;
 export const signUp = async (email: string, password: string, passwordConfirmation: string) =>
-	await handleErrorLogic("signUp", SignUpError, async (throwCode) => {
+	await handleErrorLogic("signUp", SignUpError, async (errorWith) => {
+		// Note that passwords of some or all whitespace are allowed.
 		if (password !== passwordConfirmation) {
-			throwCode(ErrorCode.UnconfirmedPassword); // Note that passwords of some or all whitespace are allowed.
+			throw errorWith(ErrorCode.UnconfirmedPassword);
 		}
 		await createUserWithEmailAndPassword(auth, email, password);
 	});
 
 // Sign in docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#signinwithemailandpassword
 export const SignInError = [
-	"auth/invalid-email",
-	"auth/user-not-found",
-	"auth/missing-password",
-	"auth/wrong-password",
+	ErrorCode.InvalidEmail,
+	ErrorCode.UserNotFound,
+	ErrorCode.MissingPassword,
+	ErrorCode.WrongPassword,
 ] as const;
-export const signIn = async (email: string, password: string) => {
-	try {
+export const signIn = async (email: string, password: string) =>
+	await handleErrorLogic("signIn", SignInError, async () => {
 		await signInWithEmailAndPassword(auth, email, password);
-		debugMsg("Successfully signed in as", auth.currentUser?.email);
-	} catch (error) {
-		debugMsg("Error signing in:", error);
-		return extractErrorCode(error, SignInError);
-	}
-};
+	});
 
 // Sign out docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#signout
-export const SignOutError = [] as const;
-export const signOut = async () => {
-	// Sign out shouldn't normally throw errors, but follow the same array/try/catch pattern as sign up/in to be safe.
-	// There may be unexpected errors since the docs are not exhaustive and this is more consistent and future-proof.
-	try {
+export const SignOutError = [] as const; // Sign out shouldn't error, but keep the same form for consistency and safety.
+export const signOut = async () =>
+	await handleErrorLogic("signOut", SignOutError, async () => {
 		await firebaseSignOut(auth);
-		debugMsg("Successfully signed out");
-	} catch (error) {
-		debugMsg("Error signing out:", error);
-		return extractErrorCode(error, SignOutError);
-	}
-};
+	});
 
 // Verify docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#sendemailverification
-export const SendVerificationEmailError = ["auth/too-many-requests", "misc/no-user", "misc/already-verified"] as const;
-export const sendVerificationEmail = async (redirectUrl = publicSiteUrl) => {
-	try {
+// Verification email template can't be customized much:
+// https://console.firebase.google.com/u/0/project/react-firebase9-logins/authentication/emails
+// Could customize more following https://blog.logrocket.com/send-custom-email-templates-firebase-react-express
+// which uses SendGrid which allows 100 emails per day free: https://sendgrid.com/pricing/
+export const SendVerificationEmailError = [
+	ErrorCode.TooManyRequests,
+	ErrorCode.NoUser,
+	ErrorCode.AlreadyVerified,
+] as const;
+export const sendVerificationEmail = async (redirectUrl = publicSiteUrl) =>
+	await handleErrorLogic("sendVerificationEmail", SendVerificationEmailError, async (errorWith) => {
 		if (!auth.currentUser) {
-			throw { code: "misc/no-user" };
+			// The `throw` before `errorWith(...);` here and elsewhere is only needed to keep TS control flow analysis
+			// happy since it can't tell that `errorWith` always throws an error, even though it returns never.
+			// `return errorWith(...);` would also work identically, but using `throw` seems clearer.
+			// See more: https://github.com/microsoft/TypeScript/issues/12825
+			throw errorWith(ErrorCode.NoUser);
 		}
 		if (auth.currentUser.emailVerified) {
 			// Curiously, Firebase will happily send more emails to someone already verified.
-			throw { code: "misc/already-verified" };
+			throw errorWith(ErrorCode.AlreadyVerified);
 		}
 		await sendEmailVerification(auth.currentUser, { url: redirectUrl });
-		debugMsg("Sending verification email to", auth.currentUser?.email);
-	} catch (error) {
-		debugMsg("Error sending verification email:", error);
-		return extractErrorCode(error, SendVerificationEmailError);
-	}
-	// Verification email template can't be customized much:
-	// https://console.firebase.google.com/u/0/project/react-firebase9-logins/authentication/emails
-	// Could customize more following https://blog.logrocket.com/send-custom-email-templates-firebase-react-express
-	// which uses SendGrid which allows 100 emails per day free: https://sendgrid.com/pricing/
-};
+	});
 
 // Delete docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#delete
-export const DeleteUserError = ["misc/no-user", "auth/requires-recent-login"] as const;
-export const deleteUser = async () => {
-	try {
-		const toDelete = auth.currentUser?.email;
+export const DeleteUserError = [ErrorCode.NoUser, ErrorCode.RequiresRecentLogin] as const;
+export const deleteUser = async () =>
+	await handleErrorLogic("deleteUser", DeleteUserError, async (errorWith) => {
 		if (!auth.currentUser) {
-			throw { code: "misc/no-user" };
+			throw errorWith(ErrorCode.NoUser);
 		}
-		await auth.currentUser.delete(); // Using deleteUser imported from "firebase/auth" also works.
-		debugMsg("Successfully deleted", toDelete);
-	} catch (error) {
-		debugMsg("Error deleting user:", error);
-		return extractErrorCode(error, DeleteUserError);
-	}
-};
+		await auth.currentUser.delete();
+	});
 
 // Reauth docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#reauthenticatewithcredential
 export const ReauthenticateUserError = [
-	"auth/missing-password",
-	"auth/wrong-password",
-	"misc/no-user",
-	"misc/no-email",
+	ErrorCode.MissingPassword,
+	ErrorCode.WrongPassword,
+	ErrorCode.NoUser,
+	ErrorCode.NoEmail,
 ] as const;
-export const reauthenticateUser = async (password: string) => {
-	try {
+export const reauthenticateUser = async (password: string) =>
+	await handleErrorLogic("reauthenticateUser", ReauthenticateUserError, async (withError) => {
 		if (!auth.currentUser) {
-			throw { code: "misc/no-user" };
+			throw withError(ErrorCode.NoUser);
 		}
 		if (!auth.currentUser.email) {
-			throw { code: "misc/no-email" };
+			throw withError(ErrorCode.NoEmail);
 		}
 		const authCredential = EmailAuthProvider.credential(auth.currentUser.email, password);
 		await reauthenticateWithCredential(auth.currentUser, authCredential);
-		debugMsg("Successfully reauthenticated", auth.currentUser.email);
-	} catch (error) {
-		debugMsg("Error reauthenticating:", error);
-		return extractErrorCode(error, ReauthenticateUserError);
-	}
-};
+	});
 
 export const ChangePasswordError = [] as const;
-export const changePassword = async (currentPassword: string, newPassword: string, passwordConfirmation: string) => {
+export const changePassword = async (currentPassword: string, newPassword: string, newPasswordConfirmation: string) => {
+	console.log(currentPassword, newPassword, newPasswordConfirmation);
+	await new Promise(() => null);
 	// try {
 	// 	if (!auth.currentUser) {
 	// 	}

@@ -2,7 +2,6 @@ import { useState } from "react";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
-import { useNavigate } from "react-router-dom";
 import { changePassword } from "../accounts";
 import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
@@ -10,7 +9,6 @@ import { useMakeToast } from "../toast";
 
 const ChangePasswordPage = () => {
 	const makeToast = useMakeToast();
-	const navigate = useNavigate();
 
 	const [currentPassword, setCurrentPassword] = useState("");
 	const [newPassword, setNewPassword] = useState("");
@@ -30,6 +28,9 @@ const ChangePasswordPage = () => {
 							switch (await changePassword(currentPassword, newPassword, newPasswordConfirmation)) {
 								case undefined:
 									break;
+								default:
+									makeErrorToast("error");
+								// TODO!!!
 							}
 						})();
 					}}
