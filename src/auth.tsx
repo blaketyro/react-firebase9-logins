@@ -158,6 +158,9 @@ export const signOut = makeAuthFunction(
 	[] // Sign out shouldn't error, but keep the same form for consistency and safety.
 );
 
+// TODO!!! Improve verification with a custom action url that detects the oobCode
+// and uses https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#applyactioncode
+
 /** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#sendemailverification */
 export const sendVerificationEmail = makeAuthFunction(
 	"sendVerificationEmail",

@@ -8,6 +8,12 @@ import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
 import { useMakeToast } from "../toast";
 
+// TODO!!! Page works but can be better:
+// Customize email template https://console.firebase.google.com/u/0/project/react-firebase9-logins/authentication/emails
+// especially the action url so it goes to something different than https://react-firebase9-logins.firebaseapp.com/__/auth/action
+// and then use the oobCode (out of band) in the url to call https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#confirmpasswordreset
+// (https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#verifypasswordresetcode may be useful too?)
+
 const ForgotPasswordPage = () => {
 	const makeToast = useMakeToast();
 	const [email, setEmail] = useState("");

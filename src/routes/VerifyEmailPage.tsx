@@ -43,7 +43,7 @@ const VerifyEmailPage = () => {
 										makeToast(message, "Error Sending Email", "danger");
 									switch (await sendVerificationEmail(getOrigin("/verify-email"))) {
 										case null:
-											makeToast("Sent verification email", "Sent Email");
+											makeToast("Sent verification email", "Sent Email", "success");
 											break;
 										case AuthErrorCodes.TooManyRequests:
 											makeErrorToast("Too many requests - try again later");

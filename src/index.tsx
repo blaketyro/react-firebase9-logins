@@ -12,6 +12,7 @@ import DeleteAccountPage from "./routes/DeleteAccountPage";
 import ErrorPage from "./routes/ErrorPage";
 import ForgotPasswordPage from "./routes/ForgotPasswordPage";
 import HomePage from "./routes/HomePage";
+import OobActionPage from "./routes/OobActionPage";
 import Root from "./routes/Root";
 import SignInPage from "./routes/SignInPage";
 import SignOutPage from "./routes/SignOutPage";
@@ -64,6 +65,10 @@ const router = createBrowserRouter([
 			{
 				path: "delete-account",
 				element: <DeleteAccountPage />,
+			},
+			{
+				path: "action",
+				element: <OobActionPage />,
 			},
 		],
 	},
