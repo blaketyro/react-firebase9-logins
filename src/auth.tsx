@@ -85,28 +85,11 @@ const extractErrorCode = <TCodes extends readonly SpecifiedAuthErrorCode[]>(
 	return AuthErrorCode.UnspecifiedError;
 };
 
-// The general try/catch logic is the same for all the account functions, so DRY it with this helper function.
-const handleErrorLogic = async <TCodes extends readonly SpecifiedAuthErrorCode[]>(
-	debugName: string,
-	possibleErrors: TCodes,
-	logic: (errorWith: (code: TCodes[number]) => never) => Promise<void>
-) => {
-	try {
-		await logic((code) => {
-			throw { code };
-		});
-		debugMsg(`${debugName} Worked!`);
-	} catch (error) {
-		debugMsg(`${debugName} Errored:`, error);
-		return extractErrorCode(error, possibleErrors);
-	}
-};
-
 // The general try/catch form is the same for all the auth functions, so DRY it with this helper maker function.
 const makeAuthFunction = <TCodes extends readonly SpecifiedAuthErrorCode[], TArgs extends unknown[]>(
 	debugName: string,
-	possibleErrors: TCodes,
-	logic: (errorWith: (code: TCodes[number]) => never, ...args: TArgs) => Promise<void>
+	logic: (errorWith: (code: TCodes[number]) => never, ...args: TArgs) => Promise<void>,
+	possibleErrors: TCodes
 ) => {
 	return async (...args: TArgs) => {
 		try {
@@ -123,57 +106,48 @@ const makeAuthFunction = <TCodes extends readonly SpecifiedAuthErrorCode[], TArg
 
 //#region Core Account Functions:
 
-/** Sign up docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#createuserwithemailandpassword */
+/** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#createuserwithemailandpassword */
 export const signUp = makeAuthFunction(
 	"signUp",
-	[
-		AuthErrorCode.EmailAlreadyInUse,
-		AuthErrorCode.InvalidEmail,
-		AuthErrorCode.MissingPassword,
-		AuthErrorCode.WeakPassword,
-		AuthErrorCode.UnconfirmedPassword,
-	],
 	async (errorWith, email: string, password: string, passwordConfirmation: string) => {
 		// Note that passwords of some or all whitespace are allowed.
 		if (password !== passwordConfirmation) {
 			throw errorWith(AuthErrorCode.UnconfirmedPassword);
 		}
 		await createUserWithEmailAndPassword(firebaseAuth, email, password);
-	}
+	},
+	[
+		AuthErrorCode.EmailAlreadyInUse,
+		AuthErrorCode.InvalidEmail,
+		AuthErrorCode.MissingPassword,
+		AuthErrorCode.WeakPassword,
+		AuthErrorCode.UnconfirmedPassword,
+	]
 );
-// TODO!!! use makeAuthFunction instead of handleErrorLogic
 
-// Sign in docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#signinwithemailandpassword
-export const SignInError = [
-	AuthErrorCode.InvalidEmail,
-	AuthErrorCode.UserNotFound,
-	AuthErrorCode.MissingPassword,
-	AuthErrorCode.WrongPassword,
-] as const;
-export const signIn = async (email: string, password: string) =>
-	await handleErrorLogic("signIn", SignInError, async () => {
+/** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#signinwithemailandpassword */
+export const signIn = makeAuthFunction(
+	"signIn",
+	async (_, email: string, password: string) => {
 		await signInWithEmailAndPassword(firebaseAuth, email, password);
-	});
+	},
+	[AuthErrorCode.InvalidEmail, AuthErrorCode.UserNotFound, AuthErrorCode.MissingPassword, AuthErrorCode.WrongPassword]
+);
 
-// Sign out docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#signout
-export const SignOutError = [] as const; // Sign out shouldn't error, but keep the same form for consistency and safety.
-export const signOut = async () =>
-	await handleErrorLogic("signOut", SignOutError, async () => {
+/** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#signout */
+export const SignOutError = [] as const;
+export const signOut = makeAuthFunction(
+	"signOut",
+	async () => {
 		await firebaseSignOut(firebaseAuth);
-	});
+	},
+	[] // Sign out shouldn't error, but keep the same form for consistency and safety.
+);
 
-// Verify docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#sendemailverification
-// Verification email template can't be customized much:
-// https://console.firebase.google.com/u/0/project/react-firebase9-logins/authentication/emails
-// Could customize more following https://blog.logrocket.com/send-custom-email-templates-firebase-react-express
-// which uses SendGrid which allows 100 emails per day free: https://sendgrid.com/pricing/
-export const SendVerificationEmailError = [
-	AuthErrorCode.TooManyRequests,
-	AuthErrorCode.NoUser,
-	AuthErrorCode.AlreadyVerified,
-] as const;
-export const sendVerificationEmail = async (redirectUrl = publicSiteUrl) =>
-	await handleErrorLogic("sendVerificationEmail", SendVerificationEmailError, async (errorWith) => {
+/** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#sendemailverification */
+export const sendVerificationEmail = makeAuthFunction(
+	"sendVerificationEmail",
+	async (errorWith, redirectUrl: string = publicSiteUrl) => {
 		if (!firebaseAuth.currentUser) {
 			// The `throw` before `errorWith(...);` here and elsewhere is only needed to keep TS control flow analysis
 			// happy since it can't tell that `errorWith` always throws an error, even though it returns never.
@@ -186,27 +160,30 @@ export const sendVerificationEmail = async (redirectUrl = publicSiteUrl) =>
 			throw errorWith(AuthErrorCode.AlreadyVerified);
 		}
 		await sendEmailVerification(firebaseAuth.currentUser, { url: redirectUrl });
-	});
+	},
+	[AuthErrorCode.TooManyRequests, AuthErrorCode.NoUser, AuthErrorCode.AlreadyVerified]
+	// Verification email template can't be customized much:
+	// https://console.firebase.google.com/u/0/project/react-firebase9-logins/authentication/emails
+	// Could customize more following https://blog.logrocket.com/send-custom-email-templates-firebase-react-express
+	// which uses SendGrid which allows 100 emails per day free: https://sendgrid.com/pricing/
+);
 
-// Delete docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#delete
-export const DeleteUserError = [AuthErrorCode.NoUser, AuthErrorCode.RequiresRecentLogin] as const;
-export const deleteUser = async () =>
-	await handleErrorLogic("deleteUser", DeleteUserError, async (errorWith) => {
+/** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#delete */
+export const deleteUser = makeAuthFunction(
+	"deleteUser",
+	async (errorWith) => {
 		if (!firebaseAuth.currentUser) {
 			throw errorWith(AuthErrorCode.NoUser);
 		}
 		await firebaseAuth.currentUser.delete();
-	});
+	},
+	[AuthErrorCode.NoUser, AuthErrorCode.RequiresRecentLogin]
+);
 
-// Reauth docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#reauthenticatewithcredential
-export const ReauthenticateUserError = [
-	AuthErrorCode.MissingPassword,
-	AuthErrorCode.WrongPassword,
-	AuthErrorCode.NoUser,
-	AuthErrorCode.NoEmail,
-] as const;
-export const reauthenticateUser = async (password: string) =>
-	await handleErrorLogic("reauthenticateUser", ReauthenticateUserError, async (withError) => {
+/** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#reauthenticatewithcredential */
+export const reauthenticateUser = makeAuthFunction(
+	"reauthenticateUser",
+	async (withError, password: string) => {
 		if (!firebaseAuth.currentUser) {
 			throw withError(AuthErrorCode.NoUser);
 		}
@@ -215,20 +192,19 @@ export const reauthenticateUser = async (password: string) =>
 		}
 		const authCredential = EmailAuthProvider.credential(firebaseAuth.currentUser.email, password);
 		await reauthenticateWithCredential(firebaseAuth.currentUser, authCredential);
-	});
+	},
+	[AuthErrorCode.MissingPassword, AuthErrorCode.WrongPassword, AuthErrorCode.NoUser, AuthErrorCode.NoEmail]
+);
 
 // Change password docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#updatepassword
-export const ChangePasswordError = [] as const;
-export const changePassword = async (currentPassword: string, newPassword: string, newPasswordConfirmation: string) => {
-	console.log(currentPassword, newPassword, newPasswordConfirmation);
-	await new Promise(() => null);
-	// try {
-	// 	if (!auth.currentUser) {
-	// 	}
-	// } catch (error) {
-	// 	debugMsg("Error changing password:", error)
-	// 	return extractErrorCode(error, ChangePasswordError)
-	// }
-};
+export const changePassword = makeAuthFunction(
+	"changePassword",
+	async (_, currentPassword: string, newPassword: string, newPasswordConfirmation: string) => {
+		console.log(currentPassword, newPassword, newPasswordConfirmation);
+		await new Promise(() => null);
+		// TODO!!!
+	},
+	[]
+);
 
 //#endregion
