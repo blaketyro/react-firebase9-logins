@@ -3,7 +3,7 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
 import { useNavigate } from "react-router-dom";
-import { AuthErrorCode, changePassword, signOut } from "../auth";
+import { AuthErrorCodes, changePassword, signOut } from "../auth";
 import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
 import { useMakeToast } from "../toast";
@@ -28,7 +28,7 @@ const ChangePasswordPage = () => {
 								makeToast(message, "Change Password Error", "danger");
 
 							switch (await changePassword(currentPassword, newPassword, newPasswordConfirmation)) {
-								case undefined:
+								case null:
 									setCurrentPassword("");
 									setNewPassword("");
 									setNewPasswordConfirmation("");
@@ -41,19 +41,19 @@ const ChangePasswordPage = () => {
 									await signOut();
 									navigate("/sign-in");
 									break;
-								case AuthErrorCode.MissingPassword:
+								case AuthErrorCodes.MissingPassword:
 									makeErrorToast("Current password not provided");
 									break;
-								case AuthErrorCode.MissingNewPassword:
+								case AuthErrorCodes.MissingNewPassword:
 									makeErrorToast("New password not provided");
 									break;
-								case AuthErrorCode.UnconfirmedPassword:
+								case AuthErrorCodes.UnconfirmedPassword:
 									makeErrorToast("New passwords don't match");
 									break;
-								case AuthErrorCode.WeakPassword:
+								case AuthErrorCodes.WeakPassword:
 									makeErrorToast("New password must be at least 6 characters");
 									break;
-								case AuthErrorCode.WrongPassword:
+								case AuthErrorCodes.WrongPassword:
 									makeErrorToast("Incorrect current password");
 									break;
 								default:

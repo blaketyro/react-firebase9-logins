@@ -2,7 +2,7 @@ import { useState } from "react";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
-import { AuthErrorCode, deleteUser, reauthenticateUser, signOut } from "./auth";
+import { AuthErrorCodes, deleteUser, reauthenticateUser, signOut } from "./auth";
 import { MakeModal, ModalComponent, awaitModal } from "./modal";
 import { MakeToast, useMakeToast } from "./toast";
 
@@ -13,7 +13,7 @@ export const examplePassword = "example";
 
 export const signOutHelper = async (makeToast: MakeToast) => {
 	switch (await signOut()) {
-		case undefined:
+		case null:
 			makeToast("Successfully signed out", "Signed Out", "success");
 			break;
 		default:
@@ -35,13 +35,13 @@ const ReauthenticationModal: ModalComponent = ({ close }) => {
 							makeToast(message, "Reauthentication Error", "danger");
 						setPassword(""); // Always clear password.
 						switch (await reauthenticateUser(password)) {
-							case undefined:
+							case null:
 								close("success");
 								break;
-							case AuthErrorCode.MissingPassword:
+							case AuthErrorCodes.MissingPassword:
 								makeErrorToast("No password provided");
 								break;
-							case AuthErrorCode.WrongPassword:
+							case AuthErrorCodes.WrongPassword:
 								makeErrorToast("Incorrect password");
 								break;
 							default:
@@ -90,14 +90,14 @@ export const deleteUserHelper = async (makeToast: MakeToast, makeModal: MakeModa
 
 	const makeSuccessToast = () => makeToast("Successfully deleted account", "Account Deleted", "success");
 	switch (await deleteUser()) {
-		case undefined:
+		case null:
 			makeSuccessToast();
 			return true;
-		case AuthErrorCode.RequiresRecentLogin:
+		case AuthErrorCodes.RequiresRecentLogin:
 			if (await reauthenticateUserHelper(makeModal)) {
 				// Try deleting again after successful reauth.
 				switch (await deleteUser()) {
-					case undefined:
+					case null:
 						makeSuccessToast();
 						return true;
 					default:

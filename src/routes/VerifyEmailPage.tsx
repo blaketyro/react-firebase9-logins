@@ -1,6 +1,6 @@
 import Button from "react-bootstrap/Button";
 import { Link } from "react-router-dom";
-import { AuthErrorCode, sendVerificationEmail, useUser } from "../auth";
+import { AuthErrorCodes, sendVerificationEmail, useUser } from "../auth";
 import { exampleEmail } from "../authHelpers";
 import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
@@ -44,10 +44,10 @@ const VerifyEmailPage = () => {
 									const makeErrorToast = (message: string) =>
 										makeToast(message, "Email Error", "danger");
 									switch (await sendVerificationEmail(publicSiteUrl + "verify-email")) {
-										case undefined:
+										case null:
 											makeToast("Sent verification email", "Sent Email");
 											break;
-										case AuthErrorCode.TooManyRequests:
+										case AuthErrorCodes.TooManyRequests:
 											makeErrorToast("Too many requests! Try again in a bit");
 											break;
 										default:

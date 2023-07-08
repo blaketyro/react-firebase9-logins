@@ -46,12 +46,14 @@ export const useUser = () => useContext(UserContext);
 //#endregion
 
 //#region Helper Types and Functions:
-// The core account functions below convert the errors Firebase throws into strings that are returned instead with
-// the help of these types and functions. This allows TS to know exactly what can happen, giving better type safety.
 
-export const AuthErrorCode = {
+const AlwaysPossibleErrorCodes = {
 	UnspecifiedError: "misc/unspecified-error",
-	// Specified errors, A-Z:
+	TooManyRequests: "auth/too-many-requests",
+} as const;
+type AlwaysPossibleErrorCode = (typeof AlwaysPossibleErrorCodes)[keyof typeof AlwaysPossibleErrorCodes];
+
+const SometimesPossibleErrorCodes = {
 	AlreadyVerified: "misc/already-verified",
 	EmailAlreadyInUse: "auth/email-already-in-use",
 	InvalidEmail: "auth/invalid-email",
@@ -60,53 +62,58 @@ export const AuthErrorCode = {
 	NoEmail: "misc/no-email",
 	NoUser: "misc/no-user",
 	RequiresRecentLogin: "auth/requires-recent-login",
-	TooManyRequests: "auth/too-many-requests", // TODO!!! make this different as it always may be possible
 	UnconfirmedPassword: "misc/unconfirmed-password",
 	UserNotFound: "auth/user-not-found",
 	WeakPassword: "auth/weak-password",
 	WrongPassword: "auth/wrong-password",
 } as const;
+type SometimesPossibleErrorCode = (typeof SometimesPossibleErrorCodes)[keyof typeof SometimesPossibleErrorCodes];
 
-export type AuthErrorCode = (typeof AuthErrorCode)[keyof typeof AuthErrorCode];
-type UnspecifiedAuthErrorCode = typeof AuthErrorCode.UnspecifiedError;
-type SpecifiedAuthErrorCode = Exclude<AuthErrorCode, UnspecifiedAuthErrorCode>;
-
-const extractErrorCode = <TCodes extends readonly SpecifiedAuthErrorCode[]>(
+const extractErrorCode = <TCodes extends readonly SometimesPossibleErrorCode[]>(
 	error: unknown,
 	specifiedErrors: TCodes
-): TCodes[number] | UnspecifiedAuthErrorCode => {
-	if (
-		error !== null &&
-		typeof error === "object" &&
-		"code" in error &&
-		typeof error.code === "string" &&
-		specifiedErrors.includes(error.code as TCodes[number])
-	) {
-		return error.code as TCodes[number];
+): TCodes[number] | AlwaysPossibleErrorCode => {
+	if (error !== null && typeof error === "object" && "code" in error && typeof error.code === "string") {
+		if (specifiedErrors.includes(error.code as TCodes[number])) {
+			return error.code as TCodes[number];
+		} else if (Object.values(AlwaysPossibleErrorCodes).includes(error.code as AlwaysPossibleErrorCode)) {
+			// Errors that can happen to any Firebase call end up here, like "auth/too-many-requests".
+			return error.code as AlwaysPossibleErrorCode;
+		}
 	}
-	return AuthErrorCode.UnspecifiedError;
+	return AlwaysPossibleErrorCodes.UnspecifiedError;
 };
 
 // The general try/catch form is the same for all the auth functions, so DRY it with this helper maker function.
-const makeAuthFunction = <TCodes extends readonly SpecifiedAuthErrorCode[], TArgs extends unknown[]>(
+const makeAuthFunction = <TCodes extends readonly SometimesPossibleErrorCode[], TArgs extends unknown[]>(
 	debugName: string,
 	logic: (errorWith: (code: TCodes[number]) => never, ...args: TArgs) => Promise<void>,
 	possibleErrors: TCodes
 ) => {
-	return async (...args: TArgs): Promise<undefined | TCodes[number] | UnspecifiedAuthErrorCode> => {
+	return async (...args: TArgs): Promise<null | TCodes[number] | AlwaysPossibleErrorCode> => {
 		try {
 			await logic((code) => {
 				throw { code };
 			}, ...args);
-			debugMsg(`${debugName} Worked!`);
 		} catch (error) {
 			debugMsg(`${debugName} Errored:`, error);
 			return extractErrorCode(error, possibleErrors);
 		}
+		debugMsg(`${debugName} Worked!`);
+		return null;
 	};
 };
 
+// Use AuthErrorCodes when referencing the error codes in other fines or further down in this file.
+export const AuthErrorCodes = { ...SometimesPossibleErrorCodes, ...AlwaysPossibleErrorCodes } as const;
+
 //#region Core Account Functions:
+
+// These core account functions all convert errors Firebase throws into strings that are returned instead, with
+// the help of the types and functions above. This allows TS to know exactly what can happen, giving better type safety.
+// They return `null` when they successfully perform their action and there is no error.
+// (This paradigm only allows for one error at a time. An alternative way would be to always return an array
+// of all the errors encountered and when it's empty that means no errors happened.)
 
 /** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#createuserwithemailandpassword */
 export const signUp = makeAuthFunction(
@@ -114,16 +121,16 @@ export const signUp = makeAuthFunction(
 	async (errorWith, email: string, password: string, passwordConfirmation: string) => {
 		// Note that passwords of some or all whitespace are allowed.
 		if (password !== passwordConfirmation) {
-			throw errorWith(AuthErrorCode.UnconfirmedPassword);
+			throw errorWith(AuthErrorCodes.UnconfirmedPassword);
 		}
 		await createUserWithEmailAndPassword(firebaseAuth, email, password);
 	},
 	[
-		AuthErrorCode.EmailAlreadyInUse,
-		AuthErrorCode.InvalidEmail,
-		AuthErrorCode.MissingPassword,
-		AuthErrorCode.UnconfirmedPassword,
-		AuthErrorCode.WeakPassword,
+		AuthErrorCodes.EmailAlreadyInUse,
+		AuthErrorCodes.InvalidEmail,
+		AuthErrorCodes.MissingPassword,
+		AuthErrorCodes.UnconfirmedPassword,
+		AuthErrorCodes.WeakPassword,
 	]
 );
 
@@ -133,7 +140,12 @@ export const signIn = makeAuthFunction(
 	async (_, email: string, password: string) => {
 		await signInWithEmailAndPassword(firebaseAuth, email, password);
 	},
-	[AuthErrorCode.InvalidEmail, AuthErrorCode.UserNotFound, AuthErrorCode.MissingPassword, AuthErrorCode.WrongPassword]
+	[
+		AuthErrorCodes.InvalidEmail,
+		AuthErrorCodes.UserNotFound,
+		AuthErrorCodes.MissingPassword,
+		AuthErrorCodes.WrongPassword,
+	]
 );
 
 /** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#signout */
@@ -155,15 +167,15 @@ export const sendVerificationEmail = makeAuthFunction(
 			// happy since it can't tell that `errorWith` always throws an error, even though it returns never.
 			// `return errorWith(...);` would also work identically, but using `throw` seems clearer.
 			// See more: https://github.com/microsoft/TypeScript/issues/12825
-			throw errorWith(AuthErrorCode.NoUser);
+			throw errorWith(AuthErrorCodes.NoUser);
 		}
 		if (firebaseAuth.currentUser.emailVerified) {
 			// Curiously, Firebase will happily send more emails to someone already verified.
-			throw errorWith(AuthErrorCode.AlreadyVerified);
+			throw errorWith(AuthErrorCodes.AlreadyVerified);
 		}
 		await sendEmailVerification(firebaseAuth.currentUser, { url: redirectUrl });
 	},
-	[AuthErrorCode.TooManyRequests, AuthErrorCode.NoUser, AuthErrorCode.AlreadyVerified]
+	[AuthErrorCodes.NoUser, AuthErrorCodes.AlreadyVerified]
 	// Verification email template can't be customized much:
 	// https://console.firebase.google.com/u/0/project/react-firebase9-logins/authentication/emails
 	// Could customize more following https://blog.logrocket.com/send-custom-email-templates-firebase-react-express
@@ -175,11 +187,11 @@ export const deleteUser = makeAuthFunction(
 	"deleteUser",
 	async (errorWith) => {
 		if (!firebaseAuth.currentUser) {
-			throw errorWith(AuthErrorCode.NoUser);
+			throw errorWith(AuthErrorCodes.NoUser);
 		}
 		await firebaseAuth.currentUser.delete();
 	},
-	[AuthErrorCode.NoUser, AuthErrorCode.RequiresRecentLogin]
+	[AuthErrorCodes.NoUser, AuthErrorCodes.RequiresRecentLogin]
 );
 
 /** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#reauthenticatewithcredential */
@@ -187,15 +199,15 @@ export const reauthenticateUser = makeAuthFunction(
 	"reauthenticateUser",
 	async (errorWith, password: string) => {
 		if (!firebaseAuth.currentUser) {
-			throw errorWith(AuthErrorCode.NoUser);
+			throw errorWith(AuthErrorCodes.NoUser);
 		}
 		if (!firebaseAuth.currentUser.email) {
-			throw errorWith(AuthErrorCode.NoEmail);
+			throw errorWith(AuthErrorCodes.NoEmail);
 		}
 		const authCredential = EmailAuthProvider.credential(firebaseAuth.currentUser.email, password);
 		await reauthenticateWithCredential(firebaseAuth.currentUser, authCredential);
 	},
-	[AuthErrorCode.MissingPassword, AuthErrorCode.WrongPassword, AuthErrorCode.NoUser, AuthErrorCode.NoEmail]
+	[AuthErrorCodes.MissingPassword, AuthErrorCodes.WrongPassword, AuthErrorCodes.NoUser, AuthErrorCodes.NoEmail]
 );
 
 /** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#updatepassword */
@@ -203,10 +215,10 @@ export const changePassword = makeAuthFunction(
 	"changePassword",
 	async (errorWith, currentPassword: string, newPassword: string, newPasswordConfirmation: string) => {
 		if (!firebaseAuth.currentUser) {
-			throw errorWith(AuthErrorCode.NoUser);
+			throw errorWith(AuthErrorCodes.NoUser);
 		}
 		if (!firebaseAuth.currentUser.email) {
-			throw errorWith(AuthErrorCode.NoEmail);
+			throw errorWith(AuthErrorCodes.NoEmail);
 		}
 
 		// Always reauth with current password. This ensures auth/requires-recent-login can't happen.
@@ -214,25 +226,25 @@ export const changePassword = makeAuthFunction(
 		await reauthenticateWithCredential(firebaseAuth.currentUser, authCredential);
 
 		if (newPassword !== newPasswordConfirmation) {
-			throw errorWith(AuthErrorCode.UnconfirmedPassword);
+			throw errorWith(AuthErrorCodes.UnconfirmedPassword);
 		}
 		// updatePassword in Firebase allows empty string as passwords which then can't be used to log in.
 		// (This may not be a bug but rather a way of resetting the password for passwordless auth?)
 		// So catch that case here. Fine since we needed to anyway to have a separate error scenario.
 		if (newPassword === "") {
-			throw errorWith(AuthErrorCode.MissingNewPassword);
+			throw errorWith(AuthErrorCodes.MissingNewPassword);
 		}
 
 		await updatePassword(firebaseAuth.currentUser, newPassword);
 	},
 	[
-		AuthErrorCode.MissingPassword,
-		AuthErrorCode.MissingNewPassword,
-		AuthErrorCode.NoEmail,
-		AuthErrorCode.NoUser,
-		AuthErrorCode.UnconfirmedPassword,
-		AuthErrorCode.WeakPassword,
-		AuthErrorCode.WrongPassword,
+		AuthErrorCodes.MissingPassword,
+		AuthErrorCodes.MissingNewPassword,
+		AuthErrorCodes.NoEmail,
+		AuthErrorCodes.NoUser,
+		AuthErrorCodes.UnconfirmedPassword,
+		AuthErrorCodes.WeakPassword,
+		AuthErrorCodes.WrongPassword,
 	]
 );
 

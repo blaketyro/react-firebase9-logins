@@ -3,7 +3,7 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
 import { useNavigate } from "react-router-dom";
-import { AuthErrorCode, signUp, useUser } from "../auth";
+import { AuthErrorCodes, signUp, useUser } from "../auth";
 import { exampleEmail, examplePassword } from "../authHelpers";
 import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
@@ -41,26 +41,26 @@ const SignUpPage = () => {
 							const makeErrorToast = (message: string) => makeToast(message, "Sign Up Error", "danger");
 							// Debatable when exactly which textboxes should be cleared.
 							switch (await signUp(email, password, passwordConfirmation)) {
-								case undefined:
+								case null:
 									setEmail("");
 									setPassword("");
 									setPasswordConfirmation("");
 									makeToast("Successfully signed up!", "Signed Up", "success");
 									navigate("/");
 									break;
-								case AuthErrorCode.EmailAlreadyInUse:
+								case AuthErrorCodes.EmailAlreadyInUse:
 									makeErrorToast("That email already has an account");
 									break;
-								case AuthErrorCode.InvalidEmail:
+								case AuthErrorCodes.InvalidEmail:
 									makeErrorToast("Invalid email address");
 									break;
-								case AuthErrorCode.MissingPassword:
+								case AuthErrorCodes.MissingPassword:
 									makeErrorToast("No password provided");
 									break;
-								case AuthErrorCode.WeakPassword:
+								case AuthErrorCodes.WeakPassword:
 									makeErrorToast("Password must be at least 6 characters");
 									break;
-								case AuthErrorCode.UnconfirmedPassword:
+								case AuthErrorCodes.UnconfirmedPassword:
 									makeErrorToast("Passwords don't match");
 									break;
 								default:

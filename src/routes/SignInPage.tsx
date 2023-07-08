@@ -3,7 +3,7 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
 import { useNavigate } from "react-router-dom";
-import { AuthErrorCode, signIn, useUser } from "../auth";
+import { AuthErrorCodes, signIn, useUser } from "../auth";
 import { exampleEmail, examplePassword } from "../authHelpers";
 import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
@@ -35,22 +35,23 @@ const SignInPage = () => {
 						void (async () => {
 							const makeErrorToast = (message: string) => makeToast(message, "Sign In Error", "danger");
 							setPassword(""); // Always clear password.
+
 							switch (await signIn(email, password)) {
-								case undefined:
+								case null:
 									setEmail("");
 									makeToast("Successfully signed in", "Signed In", "success");
 									navigate("/");
 									break;
-								case AuthErrorCode.InvalidEmail:
+								case AuthErrorCodes.InvalidEmail:
 									makeErrorToast("Invalid email address");
 									break;
-								case AuthErrorCode.UserNotFound:
+								case AuthErrorCodes.UserNotFound:
 									makeErrorToast("User not found");
 									break;
-								case AuthErrorCode.MissingPassword:
+								case AuthErrorCodes.MissingPassword:
 									makeErrorToast("No password provided");
 									break;
-								case AuthErrorCode.WrongPassword:
+								case AuthErrorCodes.WrongPassword:
 									makeErrorToast("Incorrect password");
 									break;
 								default:
