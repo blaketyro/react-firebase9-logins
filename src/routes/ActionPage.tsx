@@ -25,23 +25,23 @@ const actionComponents: Record<string, ({ searchParams }: { searchParams: URLSea
 				switch (await confirmVerificationEmail(oobCode)) {
 					case null:
 						setNode(
-							<>
-								Your email address has been verified!
-								<Link to={continueUrl}>Continue to the site.</Link>
-							</>
+							<Stack gap={2}>
+								<div>Your email address has been verified!</div>
+								<Link to={continueUrl}>Continue to the site</Link>
+							</Stack>
 						);
 						break;
 					case AuthErrorCodes.InvalidActionCode:
-						setNode(<>Invalid action code.</>);
+						setNode(<>Invalid action code</>);
 						break;
 					case AuthErrorCodes.ExpiredActionCode:
-						setNode(<>Link is expired. Please try again.</>);
+						setNode(<>Link is expired - please try again</>);
 						break;
 					case AuthErrorCodes.UserNotFound:
-						setNode(<>User not found. Possibly user has been deleted.</>);
+						setNode(<>User not found - possibly deleted</>);
 						break;
 					default:
-						setNode(<>Unspecified error confirming email verification.</>);
+						setNode(<>Unspecified error confirming email verification</>);
 				}
 			})();
 		}, []);
@@ -49,7 +49,7 @@ const actionComponents: Record<string, ({ searchParams }: { searchParams: URLSea
 		return node;
 	},
 	resetPassword: () => <p>TODO</p>,
-	unknown: () => <>Unknown action.</>,
+	unknown: () => <>Unknown action</>,
 };
 
 const ActionPage = () => {

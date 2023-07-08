@@ -1,6 +1,6 @@
 import Button from "react-bootstrap/Button";
 import { Link } from "react-router-dom";
-import { AuthErrorCodes, getOrigin, sendVerificationEmail, useUser } from "../auth";
+import { AuthErrorCodes, sendVerificationEmail, useUser } from "../auth";
 import { exampleEmail } from "../authHelpers";
 import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
@@ -41,7 +41,7 @@ const VerifyEmailPage = () => {
 
 									const makeErrorToast = (message: string) =>
 										makeToast(message, "Error Sending Email", "danger");
-									switch (await sendVerificationEmail(getOrigin("/verify-email"))) {
+									switch (await sendVerificationEmail()) {
 										case null:
 											makeToast("Sent verification email", "Sent Email", "success");
 											break;
