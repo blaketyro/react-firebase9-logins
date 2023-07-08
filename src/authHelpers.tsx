@@ -12,12 +12,17 @@ export const examplePassword = "example";
 // Keep these async since sometimes it's useful to await for them to finish to do a further action.
 
 export const signOutHelper = async (makeToast: MakeToast) => {
+	const makeErrorToast = (message: string) => makeToast(message, "Sign Out Error", "danger");
+
 	switch (await signOut()) {
 		case null:
 			makeToast("Successfully signed out", "Signed Out", "success");
 			break;
+		case AuthErrorCodes.TooManyRequests:
+			makeErrorToast("Too many requests - try again later");
+			break;
 		default:
-			makeToast("Unspecified error signing out", "Sign Out Error", "danger");
+			makeErrorToast("Unspecified error signing out");
 	}
 };
 
@@ -43,6 +48,9 @@ const ReauthenticationModal: ModalComponent = ({ close }) => {
 								break;
 							case AuthErrorCodes.WrongPassword:
 								makeErrorToast("Incorrect password");
+								break;
+							case AuthErrorCodes.TooManyRequests:
+								makeErrorToast("Too many requests - try again later");
 								break;
 							default:
 								makeErrorToast("Unspecified error reauthenticating");
@@ -96,16 +104,18 @@ export const deleteUserHelper = async (makeToast: MakeToast, makeModal: MakeModa
 		case AuthErrorCodes.RequiresRecentLogin:
 			if (await reauthenticateUserHelper(makeModal)) {
 				// Try deleting again after successful reauth.
-				switch (await deleteUser()) {
-					case null:
-						makeSuccessToast();
-						return true;
-					default:
-						makeErrorToast("Reauthentication unexpectedly failed"); // Should never happen.
+				if ((await deleteUser()) === null) {
+					makeSuccessToast();
+					return true;
+				} else {
+					makeErrorToast("Reauthentication unexpectedly failed"); // Should never happen.
 				}
 			} else {
 				makeReauthNotProvidedToast();
 			}
+			break;
+		case AuthErrorCodes.TooManyRequests:
+			makeErrorToast("Too many requests - try again later");
 			break;
 		default:
 			makeErrorToast("Unspecified error deleting account");

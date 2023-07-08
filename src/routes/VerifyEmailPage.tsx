@@ -48,7 +48,7 @@ const VerifyEmailPage = () => {
 											makeToast("Sent verification email", "Sent Email");
 											break;
 										case AuthErrorCodes.TooManyRequests:
-											makeErrorToast("Too many requests! Try again in a bit");
+											makeErrorToast("Too many requests - try again later");
 											break;
 										default:
 											makeErrorToast("Unspecified error sending verification email");

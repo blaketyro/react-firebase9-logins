@@ -63,6 +63,9 @@ const SignUpPage = () => {
 								case AuthErrorCodes.UnconfirmedPassword:
 									makeErrorToast("Passwords don't match");
 									break;
+								case AuthErrorCodes.TooManyRequests:
+									makeErrorToast("Too many requests - try again later");
+									break;
 								default:
 									setEmail("");
 									setPassword("");

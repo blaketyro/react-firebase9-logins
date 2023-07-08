@@ -54,6 +54,9 @@ const SignInPage = () => {
 								case AuthErrorCodes.WrongPassword:
 									makeErrorToast("Incorrect password");
 									break;
+								case AuthErrorCodes.TooManyRequests:
+									makeErrorToast("Too many requests - try again later");
+									break;
 								default:
 									setEmail("");
 									makeErrorToast("Unspecified error signing in");

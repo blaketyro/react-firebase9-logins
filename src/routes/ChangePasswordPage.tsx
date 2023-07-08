@@ -56,6 +56,9 @@ const ChangePasswordPage = () => {
 								case AuthErrorCodes.WrongPassword:
 									makeErrorToast("Incorrect current password");
 									break;
+								case AuthErrorCodes.TooManyRequests:
+									makeErrorToast("Too many requests - try again later");
+									break;
 								default:
 									setCurrentPassword("");
 									setNewPassword("");
