@@ -1,7 +1,5 @@
 // My API for the user auth systems (dependency inverted so the React stuff doesn't need to know about Firebase).
 
-// TODO!!! have an auth function maker, ofc
-
 // firebase/auth docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth
 // User docs: https://firebase.google.com/docs/reference/js/v8/firebase.User
 // Edit email templates: https://console.firebase.google.com/u/0/project/react-firebase9-logins/authentication/emails
@@ -104,24 +102,46 @@ const handleErrorLogic = async <TCodes extends readonly SpecifiedAuthErrorCode[]
 	}
 };
 
+// The general try/catch form is the same for all the auth functions, so DRY it with this helper maker function.
+const makeAuthFunction = <TCodes extends readonly SpecifiedAuthErrorCode[], TArgs extends unknown[]>(
+	debugName: string,
+	possibleErrors: TCodes,
+	logic: (errorWith: (code: TCodes[number]) => never, ...args: TArgs) => Promise<void>
+) => {
+	return async (...args: TArgs) => {
+		try {
+			await logic((code) => {
+				throw { code };
+			}, ...args);
+			debugMsg(`${debugName} Worked!`);
+		} catch (error) {
+			debugMsg(`${debugName} Errored:`, error);
+			return extractErrorCode(error, possibleErrors);
+		}
+	};
+};
+
 //#region Core Account Functions:
 
-// Sign up docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#createuserwithemailandpassword
-export const SignUpError = [
-	AuthErrorCode.EmailAlreadyInUse,
-	AuthErrorCode.InvalidEmail,
-	AuthErrorCode.MissingPassword,
-	AuthErrorCode.WeakPassword,
-	AuthErrorCode.UnconfirmedPassword,
-] as const;
-export const signUp = async (email: string, password: string, passwordConfirmation: string) =>
-	await handleErrorLogic("signUp", SignUpError, async (errorWith) => {
+/** Sign up docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#createuserwithemailandpassword */
+export const signUp = makeAuthFunction(
+	"signUp",
+	[
+		AuthErrorCode.EmailAlreadyInUse,
+		AuthErrorCode.InvalidEmail,
+		AuthErrorCode.MissingPassword,
+		AuthErrorCode.WeakPassword,
+		AuthErrorCode.UnconfirmedPassword,
+	],
+	async (errorWith, email: string, password: string, passwordConfirmation: string) => {
 		// Note that passwords of some or all whitespace are allowed.
 		if (password !== passwordConfirmation) {
 			throw errorWith(AuthErrorCode.UnconfirmedPassword);
 		}
 		await createUserWithEmailAndPassword(firebaseAuth, email, password);
-	});
+	}
+);
+// TODO!!! use makeAuthFunction instead of handleErrorLogic
 
 // Sign in docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#signinwithemailandpassword
 export const SignInError = [
