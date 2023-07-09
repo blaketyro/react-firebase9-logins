@@ -87,22 +87,26 @@ const extractErrorCode = <TCodes extends readonly SometimesPossibleErrorCode[]>(
 };
 
 // The general try/catch form is the same for all the auth functions, so DRY it with this helper maker function.
-const makeAuthFunction = <TCodes extends readonly SometimesPossibleErrorCode[], TArgs extends unknown[]>(
+const makeAuthFunction = <
+	TCodes extends readonly SometimesPossibleErrorCode[],
+	TArgs extends unknown[],
+	TReturn = undefined
+>(
 	debugName: string,
-	logic: (errorWith: (code: TCodes[number]) => never, ...args: TArgs) => Promise<void>,
+	logic: (errorWith: (code: TCodes[number]) => never, ...args: TArgs) => Promise<TReturn>,
 	possibleErrors: TCodes
 ) => {
-	return async (...args: TArgs): Promise<null | TCodes[number] | AlwaysPossibleErrorCode> => {
+	return async (...args: TArgs): Promise<TReturn | TCodes[number] | AlwaysPossibleErrorCode> => {
 		try {
-			await logic((code) => {
+			const result = await logic((code) => {
 				throw { code };
 			}, ...args);
+			debugMsg(`${debugName} worked!`);
+			return result;
 		} catch (error) {
 			debugMsg(`${debugName} errored:`, error);
 			return extractErrorCode(error, possibleErrors);
 		}
-		debugMsg(`${debugName} worked!`);
-		return null;
 	};
 };
 
@@ -113,7 +117,7 @@ export const AuthErrorCodes = { ...SometimesPossibleErrorCodes, ...AlwaysPossibl
 
 // These core account functions all convert errors Firebase throws into strings that are returned instead, with
 // the help of the types and functions above. This allows TS to know exactly what can happen, giving better type safety.
-// They return `null` when they successfully perform their action and there is no error.
+// They return undefined (or some other clear value) when they successfully perform their action and there is no error.
 // (This paradigm only allows for one error at a time. An alternative way would be to always return an array
 // of all the errors encountered and when it's empty that means no errors happened.)
 
@@ -279,6 +283,37 @@ export const sendPasswordResetEmail = makeAuthFunction(
 		await Firebase.sendPasswordResetEmail(auth, email, { url: redirectUrl });
 	},
 	[AuthErrorCodes.InvalidEmail, AuthErrorCodes.UserNotFound]
+);
+
+/** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#confirmpasswordreset */
+export const confirmPasswordReset = makeAuthFunction(
+	"confirmPasswordReset",
+	async (errorWith, oobCode: string, password: string, passwordConfirmation: string) => {
+		if (password !== passwordConfirmation) {
+			throw errorWith(AuthErrorCodes.UnconfirmedPassword);
+		}
+		await Firebase.confirmPasswordReset(auth, oobCode, password);
+	},
+	[
+		AuthErrorCodes.UnconfirmedPassword,
+		AuthErrorCodes.WeakPassword,
+		AuthErrorCodes.MissingPassword,
+		AuthErrorCodes.InvalidActionCode,
+		AuthErrorCodes.ExpiredActionCode,
+		AuthErrorCodes.UserNotFound,
+	]
+);
+
+/** Firebase docs:  https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#checkactioncode */
+export const getOobCodeInfo = makeAuthFunction(
+	"getOobCodeInfo",
+	async (_, oobCode: string) => {
+		// This is one of the few auth functions that has a non-undefined return because the result is useful.
+		return await Firebase.checkActionCode(auth, oobCode);
+		// The function https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#verifypasswordresetcode
+		// seems to do the same thing but only gives the email address back, so using Firebase.checkActionCode instead.
+	},
+	[AuthErrorCodes.InvalidActionCode, AuthErrorCodes.ExpiredActionCode, AuthErrorCodes.UserNotFound]
 );
 
 /** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#delete */

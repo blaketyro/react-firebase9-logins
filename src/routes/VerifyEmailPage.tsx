@@ -42,7 +42,7 @@ const VerifyEmailPage = () => {
 									const makeErrorToast = (message: string) =>
 										makeToast(message, "Error Sending Email", "danger");
 									switch (await sendVerificationEmail()) {
-										case null:
+										case undefined:
 											makeToast("Sent verification email", "Sent Email", "success");
 											break;
 										case AuthErrorCodes.TooManyRequests:

@@ -28,7 +28,7 @@ const ChangePasswordPage = () => {
 								makeToast(message, "Error Changing Password", "danger");
 
 							switch (await changePassword(currentPassword, newPassword, newPasswordConfirmation)) {
-								case null:
+								case undefined:
 									setCurrentPassword("");
 									setNewPassword("");
 									setNewPasswordConfirmation("");

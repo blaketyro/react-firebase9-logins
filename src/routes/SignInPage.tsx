@@ -38,7 +38,7 @@ const SignInPage = () => {
 							setPassword(""); // Always clear password.
 
 							switch (await signIn(email, password)) {
-								case null:
+								case undefined:
 									setEmail("");
 									makeToast("Successfully signed in", "Signed In", "success");
 									navigate("/");

@@ -7,23 +7,27 @@
 // Search params format: .../action?mode=...&oobCode=...&apiKey=...&continueUrl=...&lang=en
 
 import { ReactNode, useEffect, useState } from "react";
+import Button from "react-bootstrap/Button";
+import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
-import { Link, useSearchParams } from "react-router-dom";
-import { AuthErrorCodes, confirmVerificationEmail, getOrigin } from "../auth";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { AuthErrorCodes, confirmPasswordReset, confirmVerificationEmail, getOobCodeInfo, getOrigin } from "../auth";
 import Box from "../components/Box";
 import HomeLink from "../components/HomeLink";
+import { useMakeToast } from "../toast";
 
 const actionComponents: Record<string, ({ searchParams }: { searchParams: URLSearchParams }) => ReactNode> = {
+	unknown: () => <>Unknown action</>,
 	verifyEmail: ({ searchParams }) => {
-		const [node, setNode] = useState<ReactNode>(<>Confirming email verification...</>);
-
 		const oobCode = searchParams.get("oobCode") ?? "";
 		const continueUrl = searchParams.get("continueUrl") ?? getOrigin();
+
+		const [node, setNode] = useState<ReactNode>(<>Confirming email verification...</>);
 
 		useEffect(() => {
 			void (async () => {
 				switch (await confirmVerificationEmail(oobCode)) {
-					case null:
+					case undefined:
 						setNode(
 							<Stack gap={2}>
 								<div>Your email address has been verified!</div>
@@ -48,8 +52,108 @@ const actionComponents: Record<string, ({ searchParams }: { searchParams: URLSea
 
 		return node;
 	},
-	resetPassword: () => <p>TODO</p>,
-	unknown: () => <>Unknown action</>,
+	resetPassword: ({ searchParams }) => {
+		const oobCode = searchParams.get("oobCode") ?? "";
+		const continueUrl = searchParams.get("continueUrl") ?? getOrigin();
+		const makeToast = useMakeToast();
+		const navigate = useNavigate();
+
+		const [password, setPassword] = useState("");
+		const [passwordConfirmation, setPasswordConfirmation] = useState("");
+
+		const [node, setNode] = useState<ReactNode>(<>Loading...</>); // (Is it bad to have a node as state?)
+
+		useEffect(() => {
+			void (async () => {
+				const info = await getOobCodeInfo(oobCode);
+
+				if (typeof info === "object") {
+					setNode(
+						<>
+							<h3>Reset Password</h3>
+							{info.data.email && (
+								<p>
+									For <span className="text-info">{info.data.email}</span>
+								</p>
+							)}
+							<Form
+								onSubmit={(event) => {
+									event.preventDefault();
+									void (async () => {
+										const makeErrorToast = (message: string) =>
+											makeToast(message, "Error Resetting Password", "danger");
+										switch (await confirmPasswordReset(oobCode, password, passwordConfirmation)) {
+											case undefined:
+												setPassword("");
+												setPasswordConfirmation("");
+												makeToast("Successfully reset password!", "Reset Password", "success");
+												navigate(continueUrl);
+												break;
+											case AuthErrorCodes.ExpiredActionCode:
+												makeErrorToast("Action expired - please try again from the start");
+												break;
+											case AuthErrorCodes.MissingPassword:
+												makeErrorToast("No password provided");
+												break;
+											case AuthErrorCodes.WeakPassword:
+												makeErrorToast("Password must be at least 6 characters");
+												break;
+											case AuthErrorCodes.UnconfirmedPassword:
+												makeErrorToast("Passwords don't match");
+												break;
+											case AuthErrorCodes.TooManyRequests:
+												makeErrorToast("Too many requests - try again later");
+												break;
+											default:
+												setPassword("");
+												setPasswordConfirmation("");
+												makeErrorToast("Unspecified error resetting password");
+										}
+									})();
+								}}
+							>
+								<Stack gap={2}>
+									<Form.Control
+										name="new-password"
+										type="password"
+										autoComplete="new-password"
+										placeholder="New Password"
+										value={password}
+										onChange={(e) => setPassword(e.target.value)}
+									/>
+									<Form.Control
+										name="confirm-new-password"
+										type="password"
+										autoComplete="new-password"
+										placeholder="Confirm New Password"
+										value={passwordConfirmation}
+										onChange={(e) => setPasswordConfirmation(e.target.value)}
+									/>
+									<Button type="submit">Reset Password</Button>
+								</Stack>
+							</Form>
+						</>
+					);
+					return;
+				}
+				switch (info) {
+					case AuthErrorCodes.InvalidActionCode:
+						setNode(<>Invalid action code</>);
+						break;
+					case AuthErrorCodes.ExpiredActionCode:
+						setNode(<>Link is expired - please try again</>);
+						break;
+					case AuthErrorCodes.UserNotFound:
+						setNode(<>User not found - possibly deleted</>);
+						break;
+					default:
+						setNode(<>Unspecified error resetting password</>);
+				}
+			})();
+		}, []);
+
+		return node;
+	},
 };
 
 const ActionPage = () => {
@@ -59,10 +163,8 @@ const ActionPage = () => {
 
 	return (
 		<Box>
-			<Stack gap={4}>
-				<ActionComponent searchParams={searchParams} />
-				<HomeLink />
-			</Stack>
+			<ActionComponent searchParams={searchParams} />
+			<HomeLink />
 		</Box>
 	);
 };

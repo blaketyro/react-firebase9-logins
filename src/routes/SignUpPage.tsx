@@ -42,7 +42,7 @@ const SignUpPage = () => {
 								makeToast(message, "Error Signing Up", "danger");
 							// Debatable when exactly which textboxes should be cleared.
 							switch (await signUp(email, password, passwordConfirmation)) {
-								case null:
+								case undefined:
 									setEmail("");
 									setPassword("");
 									setPasswordConfirmation("");

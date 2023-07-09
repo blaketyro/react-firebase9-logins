@@ -17,7 +17,7 @@ export const signOutHelper = async (makeToast: MakeToast) => {
 	const makeErrorToast = (message: string) => makeToast(message, "Error Signing Out", "danger");
 
 	switch (await signOut()) {
-		case null:
+		case undefined:
 			makeToast("Successfully signed out", "Signed Out", "success");
 			break;
 		case AuthErrorCodes.TooManyRequests:
@@ -42,7 +42,7 @@ const ReauthenticationModal: ModalComponent = ({ close }) => {
 							makeToast(message, "Error Reauthenticating", "danger");
 						setPassword(""); // Always clear password.
 						switch (await reauthenticateUser(password)) {
-							case null:
+							case undefined:
 								close("success");
 								break;
 							case AuthErrorCodes.MissingPassword:
@@ -100,7 +100,7 @@ export const deleteUserHelper = async (makeToast: MakeToast, makeModal: MakeModa
 
 	const makeSuccessToast = () => makeToast("Successfully deleted account", "Account Deleted", "success");
 	switch (await deleteUser()) {
-		case null:
+		case undefined:
 			makeSuccessToast();
 			return true;
 		case AuthErrorCodes.RequiresRecentLogin:
@@ -128,7 +128,7 @@ export const deleteUserHelper = async (makeToast: MakeToast, makeModal: MakeModa
 export const changeDisplayNameHelper = async (makeToast: MakeToast, newDisplayName: string) => {
 	const makeErrorToast = (message: string) => makeToast(message, "Error Changing Display Name", "danger");
 	switch (await changeDisplayName(newDisplayName)) {
-		case null:
+		case undefined:
 			makeToast(
 				newDisplayName ? "Successfully changed display name" : "Successfully removed display name",
 				"Display Name Changed",
@@ -146,7 +146,7 @@ export const changeDisplayNameHelper = async (makeToast: MakeToast, newDisplayNa
 export const changeProfilePhotoHelper = async (makeToast: MakeToast, newPhotoUrl: string) => {
 	const makeErrorToast = (message: string) => makeToast(message, "Error Changing Profile Photo", "danger");
 	switch (await changeProfilePhoto(newPhotoUrl)) {
-		case null:
+		case undefined:
 			makeToast(
 				newPhotoUrl ? "Successfully changed profile photo" : "Successfully removed profile photo",
 				"Profile Photo Changed",
