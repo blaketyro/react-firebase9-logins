@@ -294,6 +294,7 @@ export const confirmPasswordReset = makeAuthFunction(
 			throw errorWith(AuthErrorCodes.UnconfirmedPassword);
 		}
 		await Firebase.confirmPasswordReset(auth, oobCode, password);
+		await Firebase.signOut(auth); // Sign out so user has log in again with their new password.
 	},
 	[
 		AuthErrorCodes.UnconfirmedPassword,
