@@ -6,8 +6,6 @@ import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
 import { useMakeToast } from "../toast";
 
-// TODO? Automatically notice when email has been verified and update the page?
-
 const VerifyEmailPage = () => {
 	const user = useUser();
 	const makeToast = useMakeToast();

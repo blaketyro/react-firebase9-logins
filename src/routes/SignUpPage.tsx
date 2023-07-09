@@ -9,9 +9,6 @@ import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
 import { useMakeToast } from "../toast";
 
-// TODO? x on textboxes?
-// TODO? reveal eye button on password box?
-
 const SignUpPage = () => {
 	const user = useUser();
 	const makeToast = useMakeToast();

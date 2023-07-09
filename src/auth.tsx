@@ -4,8 +4,8 @@
 // firebase/auth docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth
 // User docs: https://firebase.google.com/docs/reference/js/v8/firebase.User
 // Edit email templates: https://console.firebase.google.com/u/0/project/react-firebase9-logins/authentication/emails
-
-// TODO? Email enumeration prevention? https://firebase.google.com/docs/auth/web/password-auth#enumeration-protection
+// A big app might want email enumeration prevention:
+// https://firebase.google.com/docs/auth/web/password-auth#enumeration-protection
 
 import * as Firebase from "firebase/auth";
 import { ReactNode, createContext, useContext, useEffect, useState } from "react";
@@ -38,7 +38,7 @@ export const useUser = () => useContext(UserContext);
 
 //#region Helper Types and Functions:
 
-// Unused after all
+// Unused after all - Could have used getOrigin to assist in providing redirect/continueUrls for some auth functions.
 // export const getOrigin = (path?: string) => {
 // 	const origin = window.origin;
 // 	if (path === undefined) {
