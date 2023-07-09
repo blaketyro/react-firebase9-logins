@@ -113,7 +113,11 @@ const actionComponents: Record<string, ({ searchParams }: { searchParams: URLSea
 								case undefined:
 									setPassword("");
 									setPasswordConfirmation("");
-									makeToast("Successfully reset password!", "Reset Password", "success");
+									makeToast(
+										"Successfully reset password - please sign in again",
+										"Reset Password",
+										"success"
+									);
 									navigate("/sign-in");
 									break;
 								case AuthErrorCodes.ExpiredActionCode:
