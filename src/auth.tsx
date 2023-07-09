@@ -38,14 +38,15 @@ export const useUser = () => useContext(UserContext);
 
 //#region Helper Types and Functions:
 
-export const getOrigin = (path?: string) => {
-	const origin = window.origin;
-	if (path === undefined) {
-		return origin;
-	} else {
-		return origin + (path.startsWith("/") ? path : `/${path}`);
-	}
-};
+// Unused after all
+// export const getOrigin = (path?: string) => {
+// 	const origin = window.origin;
+// 	if (path === undefined) {
+// 		return origin;
+// 	} else {
+// 		return origin + (path.startsWith("/") ? path : `/${path}`);
+// 	}
+// };
 
 const AlwaysPossibleErrorCodes = {
 	UnspecifiedError: "misc/unspecified-error",
@@ -167,7 +168,7 @@ export const signOut = makeAuthFunction(
 /** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#sendemailverification */
 export const sendVerificationEmail = makeAuthFunction(
 	"sendVerificationEmail",
-	async (errorWith, redirectUrl: string = getOrigin()) => {
+	async (errorWith) => {
 		if (!auth.currentUser) {
 			// The `throw` before `errorWith(...);` here and elsewhere is only needed to keep TS control flow analysis
 			// happy since it can't tell that `errorWith` always throws an error, even though it returns never.
@@ -179,7 +180,7 @@ export const sendVerificationEmail = makeAuthFunction(
 			// Curiously, Firebase will happily send more emails to someone already verified. Idempotence I guess.
 			throw errorWith(AuthErrorCodes.AlreadyVerified);
 		}
-		await Firebase.sendEmailVerification(auth.currentUser, { url: redirectUrl });
+		await Firebase.sendEmailVerification(auth.currentUser /*, { url: redirectUrl } */);
 	},
 	[AuthErrorCodes.NoUser, AuthErrorCodes.AlreadyVerified]
 	// Verification email template can't be customized much:
@@ -279,8 +280,8 @@ export const changeProfilePhoto = makeAuthFunction(
 /** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#sendpasswordresetemail */
 export const sendPasswordResetEmail = makeAuthFunction(
 	"sendPasswordResetEmail",
-	async (_, email: string, redirectUrl: string = getOrigin()) => {
-		await Firebase.sendPasswordResetEmail(auth, email, { url: redirectUrl });
+	async (_, email: string) => {
+		await Firebase.sendPasswordResetEmail(auth, email /*, { url: redirectUrl } */);
 	},
 	[AuthErrorCodes.InvalidEmail, AuthErrorCodes.UserNotFound]
 );
@@ -297,7 +298,7 @@ export const confirmPasswordReset = makeAuthFunction(
 	[
 		AuthErrorCodes.UnconfirmedPassword,
 		AuthErrorCodes.WeakPassword,
-		AuthErrorCodes.MissingPassword,
+		// AuthErrorCodes.MissingPassword, // confirmPasswordReset oddly doesn't throw this error on empty password.
 		AuthErrorCodes.InvalidActionCode,
 		AuthErrorCodes.ExpiredActionCode,
 		AuthErrorCodes.UserNotFound,

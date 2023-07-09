@@ -2,7 +2,7 @@ import { useState } from "react";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
-import { AuthErrorCodes, getOrigin, sendPasswordResetEmail } from "../auth";
+import { AuthErrorCodes, sendPasswordResetEmail } from "../auth";
 import { exampleEmail } from "../authHelpers";
 import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
@@ -31,7 +31,7 @@ const ForgotPasswordPage = () => {
 
 							const makeErrorToast = (message: string) =>
 								makeToast(message, "Error Sending Email", "danger");
-							switch (await sendPasswordResetEmail(email, getOrigin("/sign-in"))) {
+							switch (await sendPasswordResetEmail(email)) {
 								case undefined:
 									makeToast("Sent password reset email", "Sent Email", "success");
 									break;

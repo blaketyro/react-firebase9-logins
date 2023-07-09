@@ -11,7 +11,7 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { AuthErrorCodes, confirmPasswordReset, confirmVerificationEmail, getOobCodeInfo, getOrigin } from "../auth";
+import { AuthErrorCodes, confirmPasswordReset, confirmVerificationEmail, getOobCodeInfo } from "../auth";
 import Box from "../components/Box";
 import HomeLink from "../components/HomeLink";
 import { useMakeToast } from "../toast";
@@ -20,7 +20,6 @@ const actionComponents: Record<string, ({ searchParams }: { searchParams: URLSea
 	unknown: () => <>Unknown action</>,
 	verifyEmail: ({ searchParams }) => {
 		const oobCode = searchParams.get("oobCode") ?? "";
-		const continueUrl = searchParams.get("continueUrl") ?? getOrigin();
 
 		const [status, setStatus] = useState<null | string>(); // undefined=loading, null=success, string=error
 
@@ -52,13 +51,12 @@ const actionComponents: Record<string, ({ searchParams }: { searchParams: URLSea
 		) : (
 			<Stack gap={2}>
 				<div>Your email address has been verified!</div>
-				<Link to={continueUrl}>Continue to the site</Link>
+				<Link to="/">Continue to the site</Link>
 			</Stack>
 		);
 	},
 	resetPassword: ({ searchParams }) => {
 		const oobCode = searchParams.get("oobCode") ?? "";
-		const continueUrl = searchParams.get("continueUrl") ?? getOrigin();
 		const makeToast = useMakeToast();
 		const navigate = useNavigate();
 
@@ -116,13 +114,10 @@ const actionComponents: Record<string, ({ searchParams }: { searchParams: URLSea
 									setPassword("");
 									setPasswordConfirmation("");
 									makeToast("Successfully reset password!", "Reset Password", "success");
-									navigate(continueUrl);
+									navigate("/");
 									break;
 								case AuthErrorCodes.ExpiredActionCode:
 									makeErrorToast("Action expired - please try again from the start");
-									break;
-								case AuthErrorCodes.MissingPassword:
-									makeErrorToast("No password provided");
 									break;
 								case AuthErrorCodes.WeakPassword:
 									makeErrorToast("Password must be at least 6 characters");
