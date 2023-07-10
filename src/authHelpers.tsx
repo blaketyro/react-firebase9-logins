@@ -106,7 +106,7 @@ export const deleteUserHelper = async (makeToast: MakeToast, makeModal: MakeModa
 		case AuthErrorCodes.RequiresRecentLogin:
 			if (await reauthenticateUserHelper(makeModal)) {
 				// Try deleting again after successful reauth.
-				if ((await deleteUser()) === null) {
+				if ((await deleteUser()) === undefined) {
 					makeSuccessToast();
 					return true;
 				} else {

@@ -3,13 +3,15 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
 import { AuthErrorCodes, changeEmail } from "../auth";
+import { reauthenticateUserHelper } from "../authHelpers";
 import Box from "../components/Box";
 import SignInGuard from "../components/SignInGuard";
+import { useMakeModal } from "../modal";
 import { useMakeToast } from "../toast";
 
 const ChangeEmailPage = () => {
 	const makeToast = useMakeToast();
-
+	const makeModal = useMakeModal();
 	const [newEmail, setNewEmail] = useState("");
 
 	return (
@@ -35,13 +37,26 @@ const ChangeEmailPage = () => {
 									5000
 								);
 							};
+							const makeAlreadyAnAccountToast = () => makeErrorToast("That email already has an account");
 
 							switch (await changeEmail(newEmail)) {
 								case undefined:
 									makeSuccessToast();
 									break;
 								case AuthErrorCodes.RequiresRecentLogin:
-									// TODO!!!
+									if (await reauthenticateUserHelper(makeModal)) {
+										// Try again after successful reauth.
+										switch (await changeEmail(newEmail)) {
+											case undefined:
+												makeSuccessToast();
+												break;
+											case AuthErrorCodes.EmailAlreadyInUse:
+												makeAlreadyAnAccountToast();
+												break;
+											default:
+												makeErrorToast("Reauthentication unexpectedly failed"); // Should never happen.
+										}
+									}
 									break;
 								case AuthErrorCodes.MissingNewEmail:
 									makeErrorToast("New email not provided");
@@ -50,7 +65,7 @@ const ChangeEmailPage = () => {
 									makeErrorToast("Invalid new email address");
 									break;
 								case AuthErrorCodes.EmailAlreadyInUse:
-									makeErrorToast("That email already has an account");
+									makeAlreadyAnAccountToast();
 									break;
 								case AuthErrorCodes.TooManyRequests:
 									makeErrorToast("Too many requests - try again later");
