@@ -60,6 +60,8 @@ const SometimesPossibleErrorCodes = {
 	ExpiredActionCode: "auth/expired-action-code",
 	InvalidActionCode: "auth/invalid-action-code",
 	InvalidEmail: "auth/invalid-email",
+	InvalidNewEmail: "auth/invalid-new-email",
+	MissingNewEmail: "auth/missing-new-email",
 	MissingNewPassword: "misc/missing-new-password",
 	MissingPassword: "auth/missing-password",
 	NoEmail: "misc/no-email",
@@ -91,7 +93,7 @@ const extractErrorCode = <TCodes extends readonly SometimesPossibleErrorCode[]>(
 const makeAuthFunction = <
 	TCodes extends readonly SometimesPossibleErrorCode[],
 	TArgs extends unknown[],
-	TReturn = undefined
+	TReturn extends undefined | Firebase.ActionCodeInfo = undefined
 >(
 	debugName: string,
 	logic: (errorWith: (code: TCodes[number]) => never, ...args: TArgs) => Promise<TReturn>,
@@ -118,14 +120,15 @@ export const AuthErrorCodes = { ...SometimesPossibleErrorCodes, ...AlwaysPossibl
 
 // These core account functions all convert errors Firebase throws into strings that are returned instead, with
 // the help of the types and functions above. This allows TS to know exactly what can happen, giving better type safety.
-// They return undefined (or some other clear value) when they successfully perform their action and there is no error.
+// They usually return undefined when they successfully perform their action and there is no error.
+// Explicit `return undefined` or `: Promise<undefined>` is needed to keep TS free of void/undefined confusion.
 // (This paradigm only allows for one error at a time. An alternative way would be to always return an array
 // of all the errors encountered and when it's empty that means no errors happened.)
 
 /** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#createuserwithemailandpassword */
 export const signUp = makeAuthFunction(
 	"signUp",
-	async (errorWith, email: string, password: string, passwordConfirmation: string) => {
+	async (errorWith, email: string, password: string, passwordConfirmation: string): Promise<undefined> => {
 		// Note that passwords of some or all whitespace are allowed.
 		if (password !== passwordConfirmation) {
 			throw errorWith(AuthErrorCodes.UnconfirmedPassword);
@@ -144,7 +147,7 @@ export const signUp = makeAuthFunction(
 /** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#signinwithemailandpassword */
 export const signIn = makeAuthFunction(
 	"signIn",
-	async (_, email: string, password: string) => {
+	async (_, email: string, password: string): Promise<undefined> => {
 		await Firebase.signInWithEmailAndPassword(auth, email, password);
 	},
 	[
@@ -159,7 +162,7 @@ export const signIn = makeAuthFunction(
 export const SignOutError = [] as const;
 export const signOut = makeAuthFunction(
 	"signOut",
-	async () => {
+	async (): Promise<undefined> => {
 		await Firebase.signOut(auth);
 	},
 	[] // Sign out shouldn't error, but keep the same form for consistency and safety.
@@ -168,7 +171,7 @@ export const signOut = makeAuthFunction(
 /** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#sendemailverification */
 export const sendVerificationEmail = makeAuthFunction(
 	"sendVerificationEmail",
-	async (errorWith) => {
+	async (errorWith): Promise<undefined> => {
 		if (!auth.currentUser) {
 			// The `throw` before `errorWith(...);` here and elsewhere is only needed to keep TS control flow analysis
 			// happy since it can't tell that `errorWith` always throws an error, even though it returns never.
@@ -180,7 +183,7 @@ export const sendVerificationEmail = makeAuthFunction(
 			// Curiously, Firebase will happily send more emails to someone already verified. Idempotence I guess.
 			throw errorWith(AuthErrorCodes.AlreadyVerified);
 		}
-		await Firebase.sendEmailVerification(auth.currentUser /*, { url: redirectUrl } */);
+		await Firebase.sendEmailVerification(auth.currentUser);
 	},
 	[AuthErrorCodes.NoUser, AuthErrorCodes.AlreadyVerified]
 	// Verification email template can't be customized much:
@@ -192,7 +195,7 @@ export const sendVerificationEmail = makeAuthFunction(
 /** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#applyactioncode */
 export const confirmVerificationEmail = makeAuthFunction(
 	"confirmVerificationEmail",
-	async (_, oobCode: string) => {
+	async (_, oobCode: string): Promise<undefined> => {
 		await Firebase.applyActionCode(auth, oobCode);
 		await auth.currentUser?.reload(); // Reload the user to ensure their verification status updates.
 	},
@@ -202,7 +205,7 @@ export const confirmVerificationEmail = makeAuthFunction(
 /** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#reauthenticatewithcredential */
 export const reauthenticateUser = makeAuthFunction(
 	"reauthenticateUser",
-	async (errorWith, password: string) => {
+	async (errorWith, password: string): Promise<undefined> => {
 		if (!auth.currentUser) {
 			throw errorWith(AuthErrorCodes.NoUser);
 		}
@@ -215,10 +218,33 @@ export const reauthenticateUser = makeAuthFunction(
 	[AuthErrorCodes.MissingPassword, AuthErrorCodes.WrongPassword, AuthErrorCodes.NoUser, AuthErrorCodes.NoEmail]
 );
 
+/** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#verifybeforeupdateemail */
+export const changeEmail = makeAuthFunction(
+	"changeEmail",
+	async (errorWith, newEmail: string): Promise<undefined> => {
+		if (!auth.currentUser) {
+			throw errorWith(AuthErrorCodes.NoUser);
+		}
+		await Firebase.verifyBeforeUpdateEmail(auth.currentUser, newEmail);
+	},
+	[
+		AuthErrorCodes.NoUser,
+		AuthErrorCodes.MissingNewEmail,
+		AuthErrorCodes.InvalidNewEmail,
+		AuthErrorCodes.RequiresRecentLogin,
+		AuthErrorCodes.EmailAlreadyInUse,
+	]
+);
+
 /** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#updatepassword */
 export const changePassword = makeAuthFunction(
 	"changePassword",
-	async (errorWith, currentPassword: string, newPassword: string, newPasswordConfirmation: string) => {
+	async (
+		errorWith,
+		currentPassword: string,
+		newPassword: string,
+		newPasswordConfirmation: string
+	): Promise<undefined> => {
 		if (!auth.currentUser) {
 			throw errorWith(AuthErrorCodes.NoUser);
 		}
@@ -256,7 +282,7 @@ export const changePassword = makeAuthFunction(
 /** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#updateprofile */
 export const changeDisplayName = makeAuthFunction(
 	"changeDisplayName",
-	async (errorWith, newDisplayName: string) => {
+	async (errorWith, newDisplayName: string): Promise<undefined> => {
 		if (!auth.currentUser) {
 			throw errorWith(AuthErrorCodes.NoUser);
 		}
@@ -268,7 +294,7 @@ export const changeDisplayName = makeAuthFunction(
 /** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#updateprofile */
 export const changeProfilePhoto = makeAuthFunction(
 	"changeProfilePhoto",
-	async (errorWith, newPhotoUrl: string) => {
+	async (errorWith, newPhotoUrl: string): Promise<undefined> => {
 		if (!auth.currentUser) {
 			throw errorWith(AuthErrorCodes.NoUser);
 		}
@@ -280,8 +306,8 @@ export const changeProfilePhoto = makeAuthFunction(
 /** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#sendpasswordresetemail */
 export const sendPasswordResetEmail = makeAuthFunction(
 	"sendPasswordResetEmail",
-	async (_, email: string) => {
-		await Firebase.sendPasswordResetEmail(auth, email /*, { url: redirectUrl } */);
+	async (_, email: string): Promise<undefined> => {
+		await Firebase.sendPasswordResetEmail(auth, email);
 	},
 	[AuthErrorCodes.InvalidEmail, AuthErrorCodes.UserNotFound]
 );
@@ -289,7 +315,7 @@ export const sendPasswordResetEmail = makeAuthFunction(
 /** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#confirmpasswordreset */
 export const confirmPasswordReset = makeAuthFunction(
 	"confirmPasswordReset",
-	async (errorWith, oobCode: string, password: string, passwordConfirmation: string) => {
+	async (errorWith, oobCode: string, password: string, passwordConfirmation: string): Promise<undefined> => {
 		if (password !== passwordConfirmation) {
 			throw errorWith(AuthErrorCodes.UnconfirmedPassword);
 		}
@@ -321,7 +347,7 @@ export const getOobCodeInfo = makeAuthFunction(
 /** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#delete */
 export const deleteUser = makeAuthFunction(
 	"deleteUser",
-	async (errorWith) => {
+	async (errorWith): Promise<undefined> => {
 		if (!auth.currentUser) {
 			throw errorWith(AuthErrorCodes.NoUser);
 		}

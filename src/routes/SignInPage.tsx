@@ -75,7 +75,7 @@ const SignInPage = () => {
 							onChange={(e) => setEmail(e.target.value)}
 						/>
 						<Form.Control
-							name="Password"
+							name="password"
 							type="password"
 							autoComplete="current-password"
 							placeholder="Password"

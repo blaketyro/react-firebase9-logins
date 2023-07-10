@@ -6,6 +6,7 @@ import { UserProvider } from "./auth";
 import "./index.css";
 import { ModalProvider } from "./modal";
 import ActionPage from "./routes/ActionPage";
+import ChangeEmailPage from "./routes/ChangeEmailPage";
 import ChangePasswordPage from "./routes/ChangePasswordPage";
 import ChangeProfilePage from "./routes/ChangeProfilePage";
 import DeleteAccountPage from "./routes/DeleteAccountPage";
@@ -45,11 +46,10 @@ const router = createBrowserRouter([
 				path: "verify-email",
 				element: <VerifyEmailPage />,
 			},
-			// TODO!!! re-enable when implemented
-			// {
-			// 	path: "change-email",
-			// 	element: <ChangeEmailPage />,
-			// },
+			{
+				path: "change-email",
+				element: <ChangeEmailPage />,
+			},
 			{
 				path: "change-profile",
 				element: <ChangeProfilePage />,
