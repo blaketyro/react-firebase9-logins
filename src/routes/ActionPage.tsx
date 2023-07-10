@@ -11,7 +11,14 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Stack from "react-bootstrap/Stack";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { AuthErrorCodes, confirmPasswordReset, confirmVerificationEmail, getOobCodeInfo } from "../auth";
+import {
+	AuthErrorCodes,
+	confirmEmailChange,
+	confirmPasswordReset,
+	confirmVerificationEmail,
+	getOobCodeInfo,
+	useUser,
+} from "../auth";
 import Box from "../components/Box";
 import HomeLink from "../components/HomeLink";
 import { useMakeToast } from "../toast";
@@ -55,6 +62,85 @@ const actionComponents: Record<string, ({ searchParams }: { searchParams: URLSea
 			</Stack>
 		);
 	},
+	// TODO!!! handle recoverEmail action
+	verifyAndChangeEmail: ({ searchParams }) => {
+		const user = useUser();
+		const oobCode = searchParams.get("oobCode") ?? "";
+		const [status, setStatus] = useState<null | string>(); // undefined=loading, null=success, string=error
+		const [text, setText] = useState("");
+		const setNoUser = () => setStatus("You must stay signed in while changing your email - please try again");
+
+		useEffect(() => {
+			if (user === null) {
+				// The user may not load fast enough for auth.currentUser, so watch and wait for the user.
+				// window.setTimeout(() => setNoUser(), 200);
+				return;
+			}
+
+			void (async () => {
+				const info = await confirmEmailChange(oobCode);
+				if (typeof info === "object") {
+					setStatus(null);
+					const { email, previousEmail } = info.data;
+					if (email && previousEmail) {
+						setText(` ${previousEmail} to ${email}`);
+					} else if (email) {
+						setText(` to ${email}`);
+					}
+					return;
+				}
+				switch (info) {
+					case undefined:
+						setStatus(null);
+						break;
+					case AuthErrorCodes.InvalidActionCode:
+						setStatus("Invalid action code");
+						break;
+					case AuthErrorCodes.ExpiredActionCode:
+						setStatus("Link is expired - please try again");
+						break;
+					case AuthErrorCodes.UserNotFound:
+						setStatus("User not found - possibly deleted");
+						break;
+					case AuthErrorCodes.EmailAlreadyInUse:
+						setStatus("That email already has an account");
+						break;
+					case AuthErrorCodes.MissingNewEmail:
+						setStatus("New email not provided");
+						break;
+					case AuthErrorCodes.TooManyRequests:
+						setStatus("Too many requests - try again later");
+						break;
+					case AuthErrorCodes.NoUser:
+						// Can't attempt re-login without sending another email anyway since the oobCode was used up.
+						// So just tell them to try again.
+						setNoUser();
+						break;
+					case AuthErrorCodes.RequiresRecentLogin:
+						setStatus("Too much time has passed since your last sign in - please try again");
+						break;
+					default:
+						setStatus("Unspecified error completing email change");
+				}
+			})();
+		}, [user]);
+
+		return status === undefined ? (
+			<>Loading...</>
+		) : typeof status === "string" ? (
+			<>{status}</>
+		) : (
+			<Stack gap={2}>
+				<div>Your email address has been changed{text}</div>
+				<Link to="/">Continue to the site</Link>
+			</Stack>
+		);
+	},
+	// recoverEmail: ({ searchParams }) => {
+	// 	const oobCode = searchParams.get("oobCode") ?? "";
+	// TODO!!! implement recoverEmail action, say "Email successfully set back to X", same errors as resetPassword mostly
+
+	// },
 	resetPassword: ({ searchParams }) => {
 		const oobCode = searchParams.get("oobCode") ?? "";
 		const makeToast = useMakeToast();
@@ -64,7 +150,7 @@ const actionComponents: Record<string, ({ searchParams }: { searchParams: URLSea
 		const [passwordConfirmation, setPasswordConfirmation] = useState("");
 
 		const [status, setStatus] = useState<null | string>(); // undefined=loading, null=success, string=error
-		const [email, setEmail] = useState<string>();
+		const [email, setEmail] = useState("");
 
 		useEffect(() => {
 			void (async () => {
@@ -72,7 +158,7 @@ const actionComponents: Record<string, ({ searchParams }: { searchParams: URLSea
 
 				if (typeof info === "object") {
 					setStatus(null);
-					setEmail(info.data.email ?? undefined);
+					setEmail(info.data.email ?? "");
 					return;
 				}
 				switch (info) {

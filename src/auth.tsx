@@ -69,6 +69,7 @@ const SometimesPossibleErrorCodes = {
 	RequiresRecentLogin: "auth/requires-recent-login",
 	UnconfirmedPassword: "misc/unconfirmed-password",
 	UserNotFound: "auth/user-not-found",
+	UserTokenExpired: "auth/user-token-expired",
 	WeakPassword: "auth/weak-password",
 	WrongPassword: "auth/wrong-password",
 } as const;
@@ -233,6 +234,35 @@ export const changeEmail = makeAuthFunction(
 		AuthErrorCodes.InvalidNewEmail,
 		AuthErrorCodes.RequiresRecentLogin,
 		AuthErrorCodes.EmailAlreadyInUse,
+	]
+);
+
+// TODO!!! This needs rethinking - the lack of user loaded and recent auth requirements make it awkward (maybe just forgo verifyBeforeUpdateEmail?)
+/** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#updateemail */
+export const confirmEmailChange = makeAuthFunction(
+	"confirmEmailChange",
+	async (errorWith, oobCode: string) => {
+		if (!auth.currentUser) {
+			throw errorWith(AuthErrorCodes.NoUser);
+		}
+		const info = await Firebase.checkActionCode(auth, oobCode);
+		if (!info.data.email) {
+			throw errorWith(AuthErrorCodes.MissingNewEmail);
+		}
+		await Firebase.applyActionCode(auth, oobCode); // Complete new email verification so we know user owns it.
+		await Firebase.updateEmail(auth.currentUser, info.data.email);
+		return info;
+	},
+	[
+		AuthErrorCodes.NoUser,
+		AuthErrorCodes.EmailAlreadyInUse,
+		AuthErrorCodes.MissingNewEmail,
+		AuthErrorCodes.InvalidActionCode,
+		AuthErrorCodes.EmailAlreadyInUse,
+		AuthErrorCodes.RequiresRecentLogin,
+		AuthErrorCodes.ExpiredActionCode,
+		AuthErrorCodes.UserNotFound,
+		AuthErrorCodes.UserTokenExpired,
 	]
 );
 
