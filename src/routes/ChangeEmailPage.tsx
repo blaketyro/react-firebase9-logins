@@ -17,30 +17,23 @@ const ChangeEmailPage = () => {
 	return (
 		<Box>
 			<h3>Change Email</h3>
-			<p>
-				Enter your new email address and click the button below and a link will be sent to your new email to
-				confirm the change.
-			</p>
 			<SignInGuard mode="require-signed-in">
+				<p>
+					Enter your new email address to use. An email will be sent to your original email address with a
+					link to revoke the change if needed.
+				</p>
 				<Form
 					onSubmit={(event) => {
 						event.preventDefault();
 						void (async () => {
 							const makeErrorToast = (message: string) =>
 								makeToast(message, "Error Changing Email", "danger");
-							const makeSuccessToast = () => {
-								setNewEmail("");
-								makeToast(
-									"Follow the link sent to your new email to confirm the change",
-									"Email Change Verification Sent",
-									"success",
-									5000
-								);
-							};
-							const makeAlreadyAnAccountToast = () => makeErrorToast("That email already has an account");
+							const makeSuccessToast = () =>
+								makeToast("Successfully changed email", "Changed email", "success");
 
 							switch (await changeEmail(newEmail)) {
 								case undefined:
+									setNewEmail("");
 									makeSuccessToast();
 									break;
 								case AuthErrorCodes.RequiresRecentLogin:
@@ -48,24 +41,22 @@ const ChangeEmailPage = () => {
 										// Try again after successful reauth.
 										switch (await changeEmail(newEmail)) {
 											case undefined:
+												setNewEmail("");
 												makeSuccessToast();
-												break;
-											case AuthErrorCodes.EmailAlreadyInUse:
-												makeAlreadyAnAccountToast();
 												break;
 											default:
 												makeErrorToast("Reauthentication unexpectedly failed"); // Should never happen.
 										}
 									}
 									break;
-								case AuthErrorCodes.MissingNewEmail:
+								case AuthErrorCodes.MissingEmail:
 									makeErrorToast("New email not provided");
 									break;
-								case AuthErrorCodes.InvalidNewEmail:
+								case AuthErrorCodes.InvalidEmail:
 									makeErrorToast("Invalid new email address");
 									break;
 								case AuthErrorCodes.EmailAlreadyInUse:
-									makeAlreadyAnAccountToast();
+									makeErrorToast("That email already has an account");
 									break;
 								case AuthErrorCodes.TooManyRequests:
 									makeErrorToast("Too many requests - try again later");

@@ -49,6 +49,9 @@ const SignUpPage = () => {
 								case AuthErrorCodes.EmailAlreadyInUse:
 									makeErrorToast("That email already has an account");
 									break;
+								case AuthErrorCodes.MissingEmail:
+									makeErrorToast("No email provided");
+									break;
 								case AuthErrorCodes.InvalidEmail:
 									makeErrorToast("Invalid email address");
 									break;

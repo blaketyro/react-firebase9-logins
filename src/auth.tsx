@@ -60,8 +60,7 @@ const SometimesPossibleErrorCodes = {
 	ExpiredActionCode: "auth/expired-action-code",
 	InvalidActionCode: "auth/invalid-action-code",
 	InvalidEmail: "auth/invalid-email",
-	InvalidNewEmail: "auth/invalid-new-email",
-	MissingNewEmail: "auth/missing-new-email",
+	MissingEmail: "auth/missing-email",
 	MissingNewPassword: "misc/missing-new-password",
 	MissingPassword: "auth/missing-password",
 	NoEmail: "misc/no-email",
@@ -69,9 +68,9 @@ const SometimesPossibleErrorCodes = {
 	RequiresRecentLogin: "auth/requires-recent-login",
 	UnconfirmedPassword: "misc/unconfirmed-password",
 	UserNotFound: "auth/user-not-found",
-	UserTokenExpired: "auth/user-token-expired",
 	WeakPassword: "auth/weak-password",
 	WrongPassword: "auth/wrong-password",
+	// Don't have auth/user-disabled since I'm assuming users are never disabled in this app.
 } as const;
 type SometimesPossibleErrorCode = (typeof SometimesPossibleErrorCodes)[keyof typeof SometimesPossibleErrorCodes];
 
@@ -142,6 +141,7 @@ export const signUp = makeAuthFunction(
 		AuthErrorCodes.MissingPassword,
 		AuthErrorCodes.UnconfirmedPassword,
 		AuthErrorCodes.WeakPassword,
+		AuthErrorCodes.MissingEmail,
 	]
 );
 
@@ -219,51 +219,38 @@ export const reauthenticateUser = makeAuthFunction(
 	[AuthErrorCodes.MissingPassword, AuthErrorCodes.WrongPassword, AuthErrorCodes.NoUser, AuthErrorCodes.NoEmail]
 );
 
-/** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#verifybeforeupdateemail */
+/** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#updateemail */
 export const changeEmail = makeAuthFunction(
 	"changeEmail",
 	async (errorWith, newEmail: string): Promise<undefined> => {
 		if (!auth.currentUser) {
 			throw errorWith(AuthErrorCodes.NoUser);
 		}
-		await Firebase.verifyBeforeUpdateEmail(auth.currentUser, newEmail);
+		if (!newEmail) {
+			throw errorWith(AuthErrorCodes.MissingEmail); // updateEmail still "succeeds" with empty string emails.
+		}
+		await Firebase.updateEmail(auth.currentUser, newEmail);
 	},
 	[
 		AuthErrorCodes.NoUser,
-		AuthErrorCodes.MissingNewEmail,
-		AuthErrorCodes.InvalidNewEmail,
-		AuthErrorCodes.RequiresRecentLogin,
+		AuthErrorCodes.InvalidEmail,
+		AuthErrorCodes.MissingEmail,
 		AuthErrorCodes.EmailAlreadyInUse,
+		AuthErrorCodes.RequiresRecentLogin,
 	]
+	// Originally tried using Firebase.verifyBeforeUpdateEmail to send the new email a verification link that led to
+	// an action page that then calls Firebase.updateEmail. But it had awkward requirements like having to wait for the
+	// currentUser (if any) to load and ensuring recent login - which breaks things down since by they time they reauth
+	// the original action code is used up and an email has to be sent again anyway. So just using simple updateEmail.
 );
 
-// TODO!!! This needs rethinking - the lack of user loaded and recent auth requirements make it awkward (maybe just forgo verifyBeforeUpdateEmail?)
-/** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#updateemail */
-export const confirmEmailChange = makeAuthFunction(
-	"confirmEmailChange",
-	async (errorWith, oobCode: string) => {
-		if (!auth.currentUser) {
-			throw errorWith(AuthErrorCodes.NoUser);
-		}
-		const info = await Firebase.checkActionCode(auth, oobCode);
-		if (!info.data.email) {
-			throw errorWith(AuthErrorCodes.MissingNewEmail);
-		}
-		await Firebase.applyActionCode(auth, oobCode); // Complete new email verification so we know user owns it.
-		await Firebase.updateEmail(auth.currentUser, info.data.email);
-		return info;
+/** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.auth.Auth#applyactioncode */
+export const revokeEmailChange = makeAuthFunction(
+	"revokeEmailChange",
+	async (_, oobCode: string): Promise<undefined> => {
+		await Firebase.applyActionCode(auth, oobCode);
 	},
-	[
-		AuthErrorCodes.NoUser,
-		AuthErrorCodes.EmailAlreadyInUse,
-		AuthErrorCodes.MissingNewEmail,
-		AuthErrorCodes.InvalidActionCode,
-		AuthErrorCodes.EmailAlreadyInUse,
-		AuthErrorCodes.RequiresRecentLogin,
-		AuthErrorCodes.ExpiredActionCode,
-		AuthErrorCodes.UserNotFound,
-		AuthErrorCodes.UserTokenExpired,
-	]
+	[AuthErrorCodes.ExpiredActionCode, AuthErrorCodes.UserNotFound, AuthErrorCodes.InvalidActionCode]
 );
 
 /** Firebase docs: https://firebase.google.com/docs/reference/js/v8/firebase.User#updatepassword */
