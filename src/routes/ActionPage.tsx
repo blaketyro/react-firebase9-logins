@@ -93,7 +93,7 @@ const actionComponents: Record<string, ({ searchParams }: { searchParams: URLSea
 		) : (
 			<Stack gap={2}>
 				<div>Your email address has been reset back to what it was.</div>
-				<Link to="/">Continue to the site</Link>
+				<Link to="/sign-in">Please sign in again</Link>
 			</Stack>
 		);
 	},

@@ -249,6 +249,8 @@ export const revokeEmailChange = makeAuthFunction(
 	"revokeEmailChange",
 	async (_, oobCode: string): Promise<undefined> => {
 		await Firebase.applyActionCode(auth, oobCode);
+		// Probably for security, Firebase seems to log out automatically when email is revoked.
+		await Firebase.signOut(auth); // But sign out to make it explicit and update the ui.
 	},
 	[AuthErrorCodes.ExpiredActionCode, AuthErrorCodes.UserNotFound, AuthErrorCodes.InvalidActionCode]
 );
